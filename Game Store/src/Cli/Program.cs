@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Game_Store
+namespace Game_Store.Cli
 {
     internal class Program
     {
