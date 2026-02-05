@@ -10,7 +10,7 @@ namespace Game_Store.Cli
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("HI bitch");
+            
         }
     }
 }
