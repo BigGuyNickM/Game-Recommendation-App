@@ -8,69 +8,59 @@ email VARCHAR(100) NOT NULL UNIQUE,
 created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE ratings (
+id INT AUTO_INCREMENT PRIMARY KEY,
+rating_name VARCHAR(20) NOT NULL UNIQUE,
+rating_value INT NOT NULL UNIQUE
+);
+
 CREATE TABLE genres (
 id INT AUTO_INCREMENT PRIMARY KEY,
 genre_name VARCHAR(100) NOT NULL UNIQUE
+);
+
+CREATE TABLE users_preferred_genres (
+user_id INT NOT NULL,
+genre_id INT NOT NULL,
+PRIMARY KEY (user_id, genre_id),
+FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+FOREIGN KEY (genre_id) REFERENCES genres(id) ON DELETE CASCADE
 );
 
 CREATE TABLE games (
 id INT AUTO_INCREMENT PRIMARY KEY,
 title VARCHAR(100) NOT NULL,
 publisher VARCHAR(100) NOT NULL,
-genre_id INT NOT NULL,
-price DECIMAL(10,2) UNSIGNED NOT NULL,
-rating DECIMAL(2,1) NULL,
 game_description TEXT NULL,
-created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-FOREIGN KEY (genre_id) REFERENCES genres(id)
+avg_rating DECIMAL(3,2) NULL,
+total_ratings INT UNSIGNED NULL,
+created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX idx_game_title ON games(title);
+CREATE INDEX idx_game_avg_rating ON games(avg_rating);
+
+CREATE TABLE game_genres (
+game_id INT NOT NULL,
+genre_id INT NOT NULL,
+PRIMARY KEY (game_id, genre_id),
+FOREIGN KEY (game_id) REFERENCES games(id) ON DELETE CASCADE,
+FOREIGN KEY (genre_id) REFERENCES genres(id) ON DELETE CASCADE
+);
 
 -- Junction table to hold all user game ownership data
 CREATE TABLE users_games (
 user_id INT NOT NULL,
 game_id INT NOT NULL,
-hours_played BIGINT UNSIGNED NOT NULL DEFAULT 0,
-last_played TIMESTAMP NULL,
+rating_id INT NULL,
+hours_played INT UNSIGNED NOT NULL DEFAULT 0,
 created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 PRIMARY KEY (user_id, game_id),
-FOREIGN KEY (user_id) REFERENCES users(id),
-FOREIGN KEY (game_id) REFERENCES games(id)
+FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+FOREIGN KEY (game_id) REFERENCES games(id) ON DELETE CASCADE,
+FOREIGN KEY (rating_id) REFERENCES ratings(id) ON DELETE SET NULL
 );
 
-CREATE TABLE payment_types (
-id INT AUTO_INCREMENT PRIMARY KEY,
-payment_name VARCHAR(100) NOT NULL UNIQUE
-);
-
-CREATE TABLE sale_discounts (
-id INT AUTO_INCREMENT PRIMARY KEY,
-discount_name VARCHAR(256) NOT NULL UNIQUE,
-percentage TINYINT UNSIGNED NOT NULL,
-discount_code VARCHAR(9) NOT NULL UNIQUE 
-);
-
-CREATE TABLE sale_status (
-id INT AUTO_INCREMENT PRIMARY KEY,
-status_name VARCHAR (50) NOT NULL UNIQUE
-);
-
-CREATE TABLE sale (
-id INT AUTO_INCREMENT PRIMARY KEY,
-user_id INT NOT NULL,
-game_id INT NOT NULL,
-payment_type_id INT NOT NULL,
-status_id INT NOT NULL,
-discount_id INT NULL,
-amount_paid DECIMAL(10,2) UNSIGNED NOT NULL,
-refund_by TIMESTAMP NULL,
-created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-FOREIGN KEY (user_id) REFERENCES users(id),
-FOREIGN KEY (game_id) REFERENCES games(id),
-FOREIGN KEY (payment_type_id) REFERENCES payment_types(id),
-FOREIGN KEY (status_id) REFERENCES sale_status(id),
-FOREIGN KEY (discount_id) REFERENCES sale_discounts(id)
-);
+CREATE INDEX idx_users_games_rating ON users_games(rating_id);
 
 SHOW TABLES FROM GameStore;
