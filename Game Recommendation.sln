@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 18
+VisualStudioVersion = 18.2.11430.68 d18.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game Recommendation", "Game Recommendation App\Game Recommendation.csproj", "{DADAAF62-957C-4E56-8AAA-346F62B0C9B5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DADAAF62-957C-4E56-8AAA-346F62B0C9B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DADAAF62-957C-4E56-8AAA-346F62B0C9B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DADAAF62-957C-4E56-8AAA-346F62B0C9B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DADAAF62-957C-4E56-8AAA-346F62B0C9B5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3B2656C9-0B52-41CF-B1B9-903CB08A5C07}
+	EndGlobalSection
+EndGlobal

@@ -65,4 +65,8 @@ FOREIGN KEY (rating_id) REFERENCES ratings(id) ON DELETE SET NULL
 
 CREATE INDEX idx_users_games_rating ON users_games(rating_id);
 
-SHOW TABLES FROM GameStore;
+SELECT u.username, g.genre_name
+FROM users_preferred_genres upg
+JOIN users u ON upg.user_id = u.id
+JOIN genres g ON upg.genre_id = g.id
+ORDER BY u.username, g.genre_name;
