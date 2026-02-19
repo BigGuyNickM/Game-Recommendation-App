@@ -34,7 +34,7 @@ namespace Game_Recommendation.Cli
                 {
                     if (selectedGenreIds.Count < 3)
                     {
-                        Console.WriteLine("Please select at least 3 genres before finishing.");
+                        Console.WriteLine("Please select at least 3 genres before finishing."); // Error if below minimum
                         System.Threading.Thread.Sleep(1500);
                     }
                     else
@@ -44,11 +44,11 @@ namespace Game_Recommendation.Cli
                 }
                 else if (int.TryParse(input, out int genreNumber))
                 {
-                    _ToggleGenreInList(allGenres, selectedGenreIds, genreNumber);
+                    _ToggleGenreInList(allGenres, selectedGenreIds, genreNumber); // Display successful change
                 }
                 else
                 {
-                    Console.WriteLine("Invalid input. Enter a number or 'done'.");
+                    Console.WriteLine("Invalid input. Enter a number or 'done'."); // Error if invalid input
                     System.Threading.Thread.Sleep(1000);
                 }
             }
@@ -116,6 +116,10 @@ namespace Game_Recommendation.Cli
             Console.WriteLine($"\nSelected: {selectedGenreIds.Count}");
         }
 
+
+
+        // TODO: Extract duplicated code into util method for genre selection display.
+
         // Helper method: Toggle genre in memory list (for signup)
         private void _ToggleGenreInList(List<Genre> allGenres, List<int> selectedGenreIds, int genreNumber)
         {
@@ -130,12 +134,12 @@ namespace Game_Recommendation.Cli
 
             Genre selectedGenre = allGenres[index];
 
-            if (selectedGenreIds.Contains(selectedGenre.Id))
+            if (selectedGenreIds.Contains(selectedGenre.Id)) // Display added genre
             {
                 selectedGenreIds.Remove(selectedGenre.Id);
                 Console.WriteLine($"Removed {selectedGenre.GenreName}");
             }
-            else
+            else // Display removed genre
             {
                 selectedGenreIds.Add(selectedGenre.Id);
                 Console.WriteLine($"Added {selectedGenre.GenreName}");
@@ -169,12 +173,12 @@ namespace Game_Recommendation.Cli
                 }
 
                 genreRepo.RemoveUserPreference(userId, selectedGenre.Id);
-                Console.WriteLine($"Removed {selectedGenre.GenreName}");
+                Console.WriteLine($"Removed {selectedGenre.GenreName}"); // Display removed genre
             }
             else
             {
                 genreRepo.AddUserPreference(userId, selectedGenre.Id);
-                Console.WriteLine($"Added {selectedGenre.GenreName}");
+                Console.WriteLine($"Added {selectedGenre.GenreName}"); // Display added genre
             }
 
             System.Threading.Thread.Sleep(800);

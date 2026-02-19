@@ -28,6 +28,7 @@ namespace Game_Recommendation.Cli
             };
         }
 
+        // Main menu loop to display menu and handle user input
         public void Run()
         {
             while (isRunning)

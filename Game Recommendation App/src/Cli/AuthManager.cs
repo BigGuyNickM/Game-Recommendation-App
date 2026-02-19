@@ -33,7 +33,7 @@ namespace Game_Recommendation.Cli
                 Console.WriteLine($"Welcome back, {user.Username}!");
                 return user;
             }
-            else
+            else // If username doesn't exist, prompt to sign up
             {
                 Console.WriteLine($"\nUsername '{username}' not found.");
                 if (InputHelper.Confirm("Would you like to sign up? (y/n): "))
@@ -46,8 +46,9 @@ namespace Game_Recommendation.Cli
         {
             Console.WriteLine("\n=== SIGN UP ===\n");
 
-            string email = InputHelper.GetInput("Enter your email: ");
+            string email = InputHelper.GetInput("Enter your email: "); // We should change this to asking if they have an email
 
+            // Checks if email is blank, should add more error handling such as needing "@email.com"
             if (string.IsNullOrWhiteSpace(email))
             {
                 Console.WriteLine("Email cannot be empty. Signup cancelled");

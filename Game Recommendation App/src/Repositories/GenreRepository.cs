@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using MySql.Data.MySqlClient;
 using Game_Recommendation.Data;
@@ -15,6 +15,7 @@ namespace Game_Recommendation.Repositories
             connectionFactory = new MySqlConnectionFactory();
         }
 
+        // Gets all genres from the database
         public List<Genre> GetAllGenres()
         {
             List<Genre> genres = new List<Genre>();
@@ -40,6 +41,7 @@ namespace Game_Recommendation.Repositories
             return genres;
         }
 
+        // Saves the user's preferred genres to the database
         public void SaveUserPreferences(int userId, List<int> genreIds)
         {
             using (var connection = connectionFactory.CreateConnection())
@@ -60,6 +62,7 @@ namespace Game_Recommendation.Repositories
             }
         }
 
+        // Checks if the user has any preferred genres saved
         public bool HasPreferences(int userId)
         {
             using (var connection = connectionFactory.CreateConnection())
@@ -75,6 +78,7 @@ namespace Game_Recommendation.Repositories
             }
         }
 
+        // Get's the User's preferred genres from the database
         public List<Genre> GetUserPreferredGenres(int userId)
         {
             List<Genre> userGenres = new List<Genre>();
@@ -105,6 +109,7 @@ namespace Game_Recommendation.Repositories
             return userGenres;
         }
 
+        // Removes a specific genre from the user's preferences
         public void RemoveUserPreference(int userId, int genreId)
         {
             using (var connection = connectionFactory.CreateConnection())
@@ -120,6 +125,7 @@ namespace Game_Recommendation.Repositories
             }
         }
 
+        // Adds a specific genre to the user's preferences
         public void AddUserPreference(int userId, int genreId)
         {
             using (var connection = connectionFactory.CreateConnection())

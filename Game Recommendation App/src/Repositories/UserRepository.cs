@@ -14,6 +14,7 @@ namespace Game_Recommendation.Repositories
             connectionFactory = new MySqlConnectionFactory();
         }
 
+        // Checks if a username already exists in the database
         public bool UsernameExists(string username)
         {
             using (var connection = connectionFactory.CreateConnection())
@@ -29,6 +30,7 @@ namespace Game_Recommendation.Repositories
             }
         }
 
+        // Get's a user by their username
         public User GetUserByUsername(string username)
         {
             using (var connection = connectionFactory.CreateConnection())
@@ -56,6 +58,7 @@ namespace Game_Recommendation.Repositories
             return null;
         }
 
+        // Creates a new user in the database and returns the created user object
         public User CreateUser(string username, string email)
         {
             using (var connection = connectionFactory.CreateConnection())

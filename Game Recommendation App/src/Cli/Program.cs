@@ -17,16 +17,16 @@ namespace Game_Recommendation
 
             if (currentUser == null)
             {
-                ConsoleHelper.WaitForKey("\nLogin failed or cancelled. Exiting...", clearAfter: false);
+                ConsoleHelper.WaitForKey("\nLogin failed or cancelled. Exiting...", clearAfter: false); // Close program if login fails or is cancelled
                 return;
             }
 
-            ConsoleHelper.WaitForKey("\nPress any key to continue to main menu...");
+            ConsoleHelper.WaitForKey("\nPress any key to continue to main menu..."); // Continue to main menu after successful login
 
             MenuManager menu = new MenuManager(currentUser);
             menu.Run();
 
-            Console.WriteLine("\nThank you for using the Game Recommendation System!");
+            Console.WriteLine("\nThank you for using the Game Recommendation System!"); // Farewell message after exiting main menu
         }
     }
 }
