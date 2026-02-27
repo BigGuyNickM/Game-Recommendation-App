@@ -6,7 +6,7 @@ using Game_Recommendation.Cli.Config;
 using Game_Recommendation.Repositories;
 using Game_Recommendation.Models;
 
-namespace Game_Recommendation.Cli
+namespace Game_Recommendation.Cli.Managers
 {
     public class GenreManager
     {

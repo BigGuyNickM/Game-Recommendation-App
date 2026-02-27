@@ -63,6 +63,17 @@ FOREIGN KEY (game_id) REFERENCES games(id) ON DELETE CASCADE,
 FOREIGN KEY (rating_id) REFERENCES ratings(id) ON DELETE SET NULL
 );
 
+CREATE TABLE users_wishlist (
+    user_id INT NOT NULL,
+    game_id INT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, game_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (game_id) REFERENCES games(id) ON DELETE CASCADE
+);
+
 CREATE INDEX idx_users_games_rating ON users_games(rating_id);
 
 SELECT * FROM games;
+
+SELECT COUNT(*) FROM games WHERE total_ratings > 0 AND avg_rating > 0;

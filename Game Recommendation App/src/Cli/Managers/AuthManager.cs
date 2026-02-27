@@ -5,7 +5,7 @@ using Game_Recommendation.Cli.Config;
 using Game_Recommendation.Repositories;
 using Game_Recommendation.Models;
 
-namespace Game_Recommendation.Cli
+namespace Game_Recommendation.Cli.Managers
 {
     public class AuthManager
     {
@@ -131,10 +131,10 @@ namespace Game_Recommendation.Cli
             string question,
             Func<string, string> validate,
             bool masked = false,
-            bool showStrength = false,
-            string error = null
+            bool showStrength = false
             )
         {
+            string error = null;
             while (true)
             {
                 ConsoleHelper.PrintHeader(header);

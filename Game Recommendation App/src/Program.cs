@@ -1,7 +1,9 @@
 using System;
 using Game_Recommendation.Cli;
 using Game_Recommendation.Cli.Utils;
+using Game_Recommendation.Cli.Managers;
 using Game_Recommendation.Models;
+
 
 namespace Game_Recommendation
 {
@@ -9,6 +11,7 @@ namespace Game_Recommendation
     {
         static void Main(string[] args)
         {
+            AuthManager authManager = new AuthManager();
             while (true)
             {
                 ConsoleHelper.PrintHeader("GAME RECOMMENDATION SYSTEM");
@@ -28,7 +31,7 @@ namespace Game_Recommendation
                     return;
                 }
 
-                AuthManager authManager = new AuthManager();
+                
                 User currentUser = choice == "1" ? authManager.Login()
                  : choice == "2" ? authManager.Signup()
                  : null;

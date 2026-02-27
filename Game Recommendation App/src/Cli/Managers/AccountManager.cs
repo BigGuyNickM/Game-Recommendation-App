@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using Game_Recommendation.Cli.Utils;
 using Game_Recommendation.Cli.Config;
+using Game_Recommendation.Cli.Utils;
 using Game_Recommendation.Models;
 using Game_Recommendation.Repositories;
 
-namespace Game_Recommendation.Cli
+namespace Game_Recommendation.Cli.Managers
 {
-    public class AccountManager
+    public class AccountManager : BaseMenu
     {
         private readonly User currentUser;
         private readonly GenreManager genreManager;
@@ -20,26 +20,7 @@ namespace Game_Recommendation.Cli
             genreRepo = new GenreRepository();
         }
 
-        public void Run()
-        {
-            bool running = true;
-
-            while (running)
-            {
-                _ShowMenu();
-                string choice = InputHelper.GetInput();
-
-                switch (choice)
-                {
-                    case "1": genreManager.ManagePreferences(currentUser.Id); break;
-                    case "2": _ManagePlayedGames(); break;
-                    case "3": _ViewProfile(); break;
-                    case "0": running = false; break;
-                }
-            }
-        }
-
-        private void _ShowMenu()
+        protected override void _ShowMenu()
         {
             ConsoleHelper.PrintHeader("MANAGE ACCOUNT");
             ConsoleHelper.PrintColored($"{currentUser.Username}\n", ColorScheme.Highlight);
@@ -49,6 +30,17 @@ namespace Game_Recommendation.Cli
                 ("3", "View Profile"),
                 ("0", "Back")
             );
+        }
+
+        protected override void _HandleChoice(string choice)
+        {
+            switch (choice)
+            {
+                case "1": genreManager.ManagePreferences(currentUser.Id); break;
+                case "2": _ManagePlayedGames(); break;
+                case "3": _ViewProfile(); break;
+                case "0": _Exit(); break;
+            }
         }
 
         private void _ViewProfile()
@@ -74,27 +66,23 @@ namespace Game_Recommendation.Cli
             ConsoleHelper.PrintColored("Preferred Genres:", ColorScheme.Muted);
 
             if (preferredGenres.Count == 0)
-            {
                 ConsoleHelper.PrintColored("  None set.", ColorScheme.Default);
-            }
             else
-            {
                 foreach (Genre genre in preferredGenres)
                     ConsoleHelper.PrintColored($"  • {genre.GenreName}", ColorScheme.Default);
-            }
 
             Console.WriteLine();
             ConsoleHelper.PrintColored("Played Games:", ColorScheme.Muted);
             ConsoleHelper.PrintColored("  (Work in Progress)", ColorScheme.Default);
 
-            InputHelper.WaitForKey("\nPress any key to go back...");
+            InputHelper.WaitForKey();
         }
 
         private void _ManagePlayedGames()
         {
             ConsoleHelper.PrintHeader("MANAGE PLAYED GAMES");
             ConsoleHelper.PrintColored("(Work in Progress)", ColorScheme.Muted);
-            InputHelper.WaitForKey("\nPress any key to go back...");
+            InputHelper.WaitForKey();
         }
     }
 }
