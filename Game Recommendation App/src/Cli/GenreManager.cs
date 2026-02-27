@@ -1,7 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game_Recommendation.Cli.Utils;
+using Game_Recommendation.Cli.Config;
 using Game_Recommendation.Repositories;
 using Game_Recommendation.Models;
 
@@ -9,179 +10,161 @@ namespace Game_Recommendation.Cli
 {
     public class GenreManager
     {
-        private GenreRepository genreRepo;
+        private readonly GenreRepository genreRepo;
+        private const int Columns = 3;
+        private const int MinGenres = 3;
 
         public GenreManager()
         {
             genreRepo = new GenreRepository();
         }
 
-        // For signup: Select preferences (must pick at least 3)
+        // For signup: select preferences from scratch
         public void SelectPreferences(int userId)
         {
             List<Genre> allGenres = genreRepo.GetAllGenres();
-            List<int> selectedGenreIds = new List<int>();
+            List<int> selectedIds = new List<int>();
+            string error = null;
 
-            bool selecting = true;
-
-            while (selecting)
+            while (true)
             {
-                _DisplaySelectionScreen(allGenres, selectedGenreIds, "SELECT YOUR FAVORITE GENRES", "Pick at least 3 genres you enjoy");
+                _RenderScreen("SELECT YOUR FAVORITE GENRES", $"Pick at least {MinGenres} genres you enjoy", allGenres, selectedIds, error);
+                error = null;
 
-                string input = InputHelper.GetInput("\nEnter genre number to toggle selection (or 'done' to finish): ").Trim().ToLower();
+                string input = InputHelper.GetInput();
+                if (input == "0")
+                {
+                    if (selectedIds.Count < MinGenres)
+                    {
+                        error = $"Please select at least {MinGenres} genres before finishing.";
+                        continue;
+                    }
+                    break;
+                }
 
-                if (input == "done")
-                {
-                    if (selectedGenreIds.Count < 3)
-                    {
-                        Console.WriteLine("Please select at least 3 genres before finishing."); // Error if below minimum
-                        System.Threading.Thread.Sleep(1500);
-                    }
-                    else
-                    {
-                        selecting = false;
-                    }
-                }
-                else if (int.TryParse(input, out int genreNumber))
-                {
-                    _ToggleGenreInList(allGenres, selectedGenreIds, genreNumber); // Display successful change
-                }
-                else
-                {
-                    Console.WriteLine("Invalid input. Enter a number or 'done'."); // Error if invalid input
-                    System.Threading.Thread.Sleep(1000);
-                }
+                error = _ToggleGenreInList(allGenres, selectedIds, input);
             }
 
-            genreRepo.SaveUserPreferences(userId, selectedGenreIds);
-            Console.WriteLine("\nPreferences saved!");
+            genreRepo.SaveUserPreferences(userId, selectedIds);
         }
 
-        // Modify existing preferences (add/remove)
+        // For menu: manage existing preferences
         public void ManagePreferences(int userId)
         {
-            bool managing = true;
+            string error = null;
 
-            while (managing)
+            while (true)
             {
                 List<Genre> allGenres = genreRepo.GetAllGenres();
                 List<Genre> userGenres = genreRepo.GetUserPreferredGenres(userId);
                 List<int> userGenreIds = userGenres.Select(g => g.Id).ToList();
 
-                _DisplaySelectionScreen(allGenres, userGenreIds, "MANAGE PREFERRED GENRES", $"You have {userGenreIds.Count} genre(s) selected (minimum 3 required)");
+                _RenderScreen("MANAGE PREFERRED GENRES", $"You have {userGenreIds.Count} genre(s) selected (minimum {MinGenres} required)", allGenres, userGenreIds, error);
+                error = null;
 
-                Console.WriteLine("\nOptions:");
-                Console.WriteLine("Enter a number to add/remove that genre");
-                Console.WriteLine("Type 'done' to finish");
+                string input = InputHelper.GetInput();
+                if (input == "0") break;
 
-                string input = InputHelper.GetInput("\nYour choice: ").ToLower();
-
-                if (input == "done")
-                {
-                    managing = false;
-                    continue;
-                }
-                else if (int.TryParse(input, out int genreNumber))
-                {
-                    _ToggleGenreInDatabase(allGenres, userGenreIds, genreNumber, userId);
-                }
-                else
-                {
-                    Console.WriteLine("Invalid input.");
-                    System.Threading.Thread.Sleep(1000);
-                }
+                error = _ToggleGenreInDatabase(allGenres, userGenreIds, input, userId);
             }
-
-            Console.WriteLine("\nPreferences updated!");
         }
 
-        // Helper method: Display genres with checkboxes
-        private void _DisplaySelectionScreen(List<Genre> allGenres, List<int> selectedGenreIds, string title, string subtitle)
+        // --- Private helpers ---
+
+        private void _RenderScreen(string title, string subtitle, List<Genre> allGenres, List<int> selectedIds, string error)
         {
-            Console.Clear();
-            Console.WriteLine($"=== {title} ===");
+            ConsoleHelper.PrintHeader(title);
             Console.WriteLine(subtitle + "\n");
+            _PrintGenreGrid(allGenres, selectedIds);
+            Console.WriteLine($"\nSelected: {selectedIds.Count}\n");
+            ConsoleHelper.PrintOptions(("0", "Done"));
+
+            if (error != null)
+                ConsoleHelper.PrintError("\n" + error);
+
+            Console.WriteLine();
+        }
+
+        private void _PrintGenreGrid(List<Genre> allGenres, List<int> selectedIds)
+        {
+            // Calculate cell width based on longest genre name
+            int maxNameLength = allGenres.Max(g => g.GenreName.Length);
+            int numberWidth = allGenres.Count.ToString().Length;
+            int cellWidth = numberWidth + maxNameLength + 10; // padding for "(X) " and spacing
 
             for (int i = 0; i < allGenres.Count; i++)
             {
                 Genre genre = allGenres[i];
+                bool isSelected = selectedIds.Contains(genre.Id);
                 int displayNumber = i + 1;
 
-                bool isSelected = selectedGenreIds.Contains(genre.Id);
-                string checkbox = isSelected ? "[X]" : "[ ]";
+                // Number
+                ConsoleHelper.PrintColored($"[{displayNumber}] ".PadRight(numberWidth + 3), ColorScheme.Input, newLine: false);
 
-                Console.WriteLine($"{displayNumber}. {checkbox} {genre.GenreName}");
-            }
-
-            Console.WriteLine($"\nSelected: {selectedGenreIds.Count}");
-        }
-
-
-
-        // TODO: Extract duplicated code into util method for genre selection display.
-
-        // Helper method: Toggle genre in memory list (for signup)
-        private void _ToggleGenreInList(List<Genre> allGenres, List<int> selectedGenreIds, int genreNumber)
-        {
-            int index = genreNumber - 1;
-
-            if (index < 0 || index >= allGenres.Count)
-            {
-                Console.WriteLine("Invalid genre number.");
-                System.Threading.Thread.Sleep(1000);
-                return;
-            }
-
-            Genre selectedGenre = allGenres[index];
-
-            if (selectedGenreIds.Contains(selectedGenre.Id)) // Display added genre
-            {
-                selectedGenreIds.Remove(selectedGenre.Id);
-                Console.WriteLine($"Removed {selectedGenre.GenreName}");
-            }
-            else // Display removed genre
-            {
-                selectedGenreIds.Add(selectedGenre.Id);
-                Console.WriteLine($"Added {selectedGenre.GenreName}");
-            }
-
-            System.Threading.Thread.Sleep(800);
-        }
-
-        // Helper method: Toggle genre in database (for manage)
-        private void _ToggleGenreInDatabase(List<Genre> allGenres, List<int> userGenreIds, int genreNumber, int userId)
-        {
-            int index = genreNumber - 1;
-
-            if (index < 0 || index >= allGenres.Count)
-            {
-                Console.WriteLine("Invalid genre number.");
-                System.Threading.Thread.Sleep(1000);
-                return;
-            }
-
-            Genre selectedGenre = allGenres[index];
-
-            if (userGenreIds.Contains(selectedGenre.Id))
-            {
-                // Check if removing would go below the minimum required
-                if (userGenreIds.Count <= 3)
+                // Checkbox
+                if (isSelected)
                 {
-                    Console.WriteLine("Cannot remove - you must have at least 3 genres.");
-                    System.Threading.Thread.Sleep(1500);
-                    return;
+                    ConsoleHelper.PrintColored("(X) ", ColorScheme.Success, newLine: false);
+                    ConsoleHelper.PrintColored(genre.GenreName.PadRight(maxNameLength), ColorScheme.Highlight, newLine: false);
+                }
+                else
+                {
+                    ConsoleHelper.PrintColored("( ) ", ColorScheme.Default, newLine: false);
+                    ConsoleHelper.PrintColored(genre.GenreName.PadRight(maxNameLength), ColorScheme.Default, newLine: false);
                 }
 
-                genreRepo.RemoveUserPreference(userId, selectedGenre.Id);
-                Console.WriteLine($"Removed {selectedGenre.GenreName}"); // Display removed genre
+                // New row every 3 columns
+                if ((i + 1) % Columns == 0 || i == allGenres.Count - 1)
+                    Console.WriteLine();
+                else
+                    Console.Write("   ");
+            }
+        }
+
+        private string _ToggleGenreInList(List<Genre> allGenres, List<int> selectedIds, string input)
+        {
+            Genre genre = _ParseGenreInput(allGenres, input, out string error);
+            if (genre == null) return error;
+
+            if (selectedIds.Contains(genre.Id))
+                selectedIds.Remove(genre.Id);
+            else
+                selectedIds.Add(genre.Id);
+
+            return null;
+        }
+
+        private string _ToggleGenreInDatabase(List<Genre> allGenres, List<int> userGenreIds, string input, int userId)
+        {
+            Genre genre = _ParseGenreInput(allGenres, input, out string error);
+            if (genre == null) return error;
+
+            if (userGenreIds.Contains(genre.Id))
+            {
+                if (userGenreIds.Count <= MinGenres)
+                    return $"Cannot remove — you must have at least {MinGenres} genres selected.";
+
+                genreRepo.RemoveUserPreference(userId, genre.Id);
             }
             else
             {
-                genreRepo.AddUserPreference(userId, selectedGenre.Id);
-                Console.WriteLine($"Added {selectedGenre.GenreName}"); // Display added genre
+                genreRepo.AddUserPreference(userId, genre.Id);
             }
 
-            System.Threading.Thread.Sleep(800);
+            return null;
+        }
+
+        // Shared input parsing and index validation
+        private Genre _ParseGenreInput(List<Genre> allGenres, string input, out string error)
+        {
+            if (!int.TryParse(input, out int number) || number < 1 || number > allGenres.Count)
+            {
+                error = $"Invalid input. Enter a number between 1 and {allGenres.Count}.";
+                return null;
+            }
+
+            error = null;
+            return allGenres[number - 1];
         }
     }
 }

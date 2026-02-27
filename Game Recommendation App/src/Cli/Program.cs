@@ -9,24 +9,48 @@ namespace Game_Recommendation
     {
         static void Main(string[] args)
         {
-            Console.Clear();
-            Console.WriteLine("=== GAME RECOMMENDATION SYSTEM ===\n");
-
-            AuthManager authManager = new AuthManager();
-            User currentUser = authManager.Login();
-
-            if (currentUser == null)
+            while (true)
             {
-                ConsoleHelper.WaitForKey("\nLogin failed or cancelled. Exiting...", clearAfter: false); // Close program if login fails or is cancelled
+                ConsoleHelper.PrintHeader("GAME RECOMMENDATION SYSTEM");
+                ConsoleHelper.PrintOptions(
+                    ("1", "Login"),
+                    ("2", "Sign Up"),
+                    ("0", "Exit")
+                );
+                Console.WriteLine();
+
+                string choice = InputHelper.GetInput("Please choose an option:");
+
+                if (choice == "0")
+                {
+                    Console.Clear();
+                    Console.WriteLine("Goodbye!");
+                    return;
+                }
+
+                AuthManager authManager = new AuthManager();
+                User currentUser = choice == "1" ? authManager.Login()
+                 : choice == "2" ? authManager.Signup()
+                 : null;
+
+                if (currentUser == null) continue;
+
+                if (currentUser.IsNewUser)
+                {
+                    GenreManager genreManager = new GenreManager();
+                    genreManager.SelectPreferences(currentUser.Id);
+                }
+                else
+                {
+                    InputHelper.WaitForKey("\nPress any key to continue to main menu...");
+                }
+
+                MenuManager menu = new MenuManager(currentUser);
+                menu.Run();
+
+                Console.WriteLine("\nThank you for using the Game Recommendation System!");
                 return;
             }
-
-            ConsoleHelper.WaitForKey("\nPress any key to continue to main menu..."); // Continue to main menu after successful login
-
-            MenuManager menu = new MenuManager(currentUser);
-            menu.Run();
-
-            Console.WriteLine("\nThank you for using the Game Recommendation System!"); // Farewell message after exiting main menu
         }
     }
 }

@@ -57,21 +57,18 @@ namespace Game_Recommendation.Repositories
         }
 
         // Creates a new user in the database and returns the created user object
-        public User CreateUser(string username, string email)
+        public User CreateUser(string username, string email, string passwordHash)
         {
             using (var connection = _pool.GetConnection())
             {
                 connection.Open();
-
-                string query = "INSERT INTO users (username, email) VALUES (@username, @email); SELECT LAST_INSERT_ID();";
-
+                string query = "INSERT INTO users (username, email, password_hash) VALUES (@username, @email, @passwordHash); SELECT LAST_INSERT_ID();";
                 using (var cmd = new MySqlCommand(query, connection))
                 {
                     cmd.Parameters.AddWithValue("@username", username);
                     cmd.Parameters.AddWithValue("@email", email);
-
+                    cmd.Parameters.AddWithValue("@passwordHash", passwordHash);
                     int newUserId = Convert.ToInt32(cmd.ExecuteScalar());
-
                     return new User
                     {
                         Id = newUserId,
@@ -79,6 +76,21 @@ namespace Game_Recommendation.Repositories
                         Email = email,
                         CreatedAt = DateTime.Now
                     };
+                }
+            }
+        }
+
+        // Used during login to retrieve stored hash for verification
+        public string GetPasswordHash(string username)
+        {
+            using (var connection = _pool.GetConnection())
+            {
+                connection.Open();
+                string query = "SELECT password_hash FROM users WHERE username = @username";
+                using (var cmd = new MySqlCommand(query, connection))
+                {
+                    cmd.Parameters.AddWithValue("@username", username);
+                    return cmd.ExecuteScalar()?.ToString();
                 }
             }
         }

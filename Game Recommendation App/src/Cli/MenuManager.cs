@@ -1,123 +1,64 @@
 using System;
-using System.Collections.Generic;
 using Game_Recommendation.Cli.Utils;
+using Game_Recommendation.Cli.Config;
 using Game_Recommendation.Models;
 
 namespace Game_Recommendation.Cli
 {
     public class MenuManager
     {
+        private readonly User currentUser;
+        private readonly AccountManager accountManager;
         private bool isRunning;
-        private Dictionary<string, Action> menuActions;
-        private User currentUser;
 
         public MenuManager(User user)
         {
-            isRunning = true;
             currentUser = user;
-
-            menuActions = new Dictionary<string, Action>
-            {
-                { "1", SearchGames },
-                { "2", GenreRecommendations },
-                { "3", PlayedGamesRecommendations },
-                { "4", ManagePreferredGenres },
-                { "5", ManagePlayedGames },
-                { "6", ViewProfile },
-                { "0", Exit }
-            };
+            accountManager = new AccountManager(user);
+            isRunning = true;
         }
 
-        // Main menu loop to display menu and handle user input
         public void Run()
         {
             while (isRunning)
             {
-                ShowMenu();
-                string choice = InputHelper.GetInput("Your choice: ");
-                Console.Clear();
-                HandleChoice(choice);
+                _ShowMenu();
+                string choice = InputHelper.GetInput();
+
+                switch (choice)
+                {
+                    case "1": _BrowseGames(); break;
+                    case "2": accountManager.Run(); break;
+                    case "0": _Exit(); break;
+                    default:
+                        break;
+                }
             }
         }
 
-        private void ShowMenu()
+        private void _ShowMenu()
         {
-            Console.WriteLine("\n=== GAME RECOMMENDATION SYSTEM ===");
-            Console.WriteLine($"Logged in as: {currentUser.Username}\n");
-
-            Console.WriteLine("BROWSE GAMES");
-            Console.WriteLine("1. Search games");
-            Console.WriteLine("2. Genre-based recommendations");
-            Console.WriteLine("3. Recommendations from your play history");
-
-            Console.WriteLine("\nUSER PROFILE");
-            Console.WriteLine("4. Manage preferred genres");
-            Console.WriteLine("5. Manage played games");
-            Console.WriteLine("6. View profile");
-
-            Console.WriteLine("\n0. Exit");
-            Console.WriteLine();
+            ConsoleHelper.PrintHeader("GAME RECOMMENDATION SYSTEM");
+            ConsoleHelper.PrintColored($"Welcome, {currentUser.Username}\n", ColorScheme.Muted);
+            ConsoleHelper.PrintOptions(
+                ("1", "Browse Games"),
+                ("2", "Manage Account"),
+                ("0", "Exit")
+            );
         }
 
-        private void HandleChoice(string choice)
+        private void _BrowseGames()
         {
-            if (menuActions.ContainsKey(choice))
-            {
-                menuActions[choice]();
-            }
-            else
-            {
-                Console.WriteLine("Invalid choice.");
-            }
-
-            if (isRunning)
-                ConsoleHelper.WaitForKey();
+            ConsoleHelper.PrintHeader("BROWSE GAMES");
+            ConsoleHelper.PrintColored("(Work in Progress)", ColorScheme.Muted);
+            InputHelper.WaitForKey();
         }
 
-        // BROWSE GAMES OPTIONS
-
-        private void SearchGames()
-        {
-            Console.WriteLine("=== SEARCH GAMES ===\n");
-            Console.WriteLine("(Work in Progress)");
-        }
-
-        private void GenreRecommendations()
-        {
-            Console.WriteLine("=== GENRE-BASED RECOMMENDATIONS ===\n");
-            Console.WriteLine("(Work in Progress)");
-        }
-
-        private void PlayedGamesRecommendations()
-        {
-            Console.WriteLine("=== RECOMMENDATIONS BASED ON PLAYED GAMES ===\n");
-            Console.WriteLine("(Work in Progress)");
-        }
-
-        // USER PROFILE OPTIONS
-
-        private void ManagePreferredGenres()
-        {
-            GenreManager genreManager = new GenreManager();
-            genreManager.ManagePreferences(currentUser.Id);
-        }
-
-        private void ManagePlayedGames()
-        {
-            Console.WriteLine("=== MANAGE PLAYED GAMES ===\n");
-            Console.WriteLine("(Work in Progress)");
-        }
-
-        private void ViewProfile()
-        {
-            Console.WriteLine("=== VIEW PROFILE ===\n");
-            Console.WriteLine("(Work in Progress)");
-        }
-
-        private void Exit()
+        private void _Exit()
         {
             isRunning = false;
-            Console.WriteLine("Goodbye!");
+            Console.Clear();
+            ConsoleHelper.PrintColored("Goodbye!", ColorScheme.Success);
         }
     }
 }
