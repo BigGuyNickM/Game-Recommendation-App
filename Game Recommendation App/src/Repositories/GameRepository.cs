@@ -9,17 +9,17 @@ namespace Game_Recommendation.Repositories
 {
     public class GameRepository
     {
-        private readonly MySqlConnectionFactory connectionFactory;
+        private readonly ConnectionPool _pool;
 
         public GameRepository()
         {
-            connectionFactory = new MySqlConnectionFactory();
+            _pool = ConnectionPool.Instance;
         }
 
         // Save a single game to database
         public int SaveGame(RawgGame rawgGame)
         {
-            using (var connection = connectionFactory.CreateConnection())
+            using (var connection = _pool.GetConnection())
             {
                 connection.Open();
 
@@ -44,7 +44,7 @@ namespace Game_Recommendation.Repositories
         // Save game genres (junction table)
         public void SaveGameGenres(int gameId, List<string> genres)
         {
-            using (var connection = connectionFactory.CreateConnection())
+            using (var connection = _pool.GetConnection())
             {
                 connection.Open();
 
@@ -133,7 +133,7 @@ namespace Game_Recommendation.Repositories
         {
             List<Game> games = new List<Game>();
 
-            using (var connection = connectionFactory.CreateConnection())
+            using (var connection = _pool.GetConnection())
             {
                 connection.Open();
 
@@ -176,7 +176,7 @@ namespace Game_Recommendation.Repositories
 
         public int GetTotalGameCount()
         {
-            using (var connection = connectionFactory.CreateConnection())
+            using (var connection = _pool.GetConnection())
             {
                 connection.Open();
 
@@ -193,7 +193,7 @@ namespace Game_Recommendation.Repositories
         {
             List<string> genres = new List<string>();
 
-            using (var connection = connectionFactory.CreateConnection())
+            using (var connection = _pool.GetConnection())
             {
                 connection.Open();
 

@@ -7,25 +7,23 @@ namespace Game_Recommendation.Repositories
 {
     public class UserRepository
     {
-        private MySqlConnectionFactory connectionFactory;
+        private readonly ConnectionPool _pool;
 
         public UserRepository()
         {
-            connectionFactory = new MySqlConnectionFactory();
+            _pool = ConnectionPool.Instance;
         }
 
-        // Checks if a username already exists in the database
         public bool UsernameExists(string username)
         {
-            using (var connection = connectionFactory.CreateConnection())
+            using (var connection = _pool.GetConnection())
             {
                 connection.Open();
                 string query = "SELECT COUNT(*) FROM users WHERE username = @username";
                 using (var cmd = new MySqlCommand(query, connection))
                 {
                     cmd.Parameters.AddWithValue("@username", username);
-                    int count = Convert.ToInt32(cmd.ExecuteScalar());
-                    return count > 0;
+                    return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
                 }
             }
         }
@@ -33,7 +31,7 @@ namespace Game_Recommendation.Repositories
         // Get's a user by their username
         public User GetUserByUsername(string username)
         {
-            using (var connection = connectionFactory.CreateConnection())
+            using (var connection = _pool.GetConnection())
             {
                 connection.Open();
                 string query = "SELECT id, username, email, created_at FROM users WHERE username = @username";
@@ -61,7 +59,7 @@ namespace Game_Recommendation.Repositories
         // Creates a new user in the database and returns the created user object
         public User CreateUser(string username, string email)
         {
-            using (var connection = connectionFactory.CreateConnection())
+            using (var connection = _pool.GetConnection())
             {
                 connection.Open();
 

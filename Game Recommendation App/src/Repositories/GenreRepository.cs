@@ -8,18 +8,18 @@ namespace Game_Recommendation.Repositories
 {
     public class GenreRepository
     {
-        private MySqlConnectionFactory connectionFactory;
+        private readonly ConnectionPool _pool;
 
         public GenreRepository()
         {
-            connectionFactory = new MySqlConnectionFactory();
+            _pool = ConnectionPool.Instance;
         }
 
         // Gets all genres from the database
         public List<Genre> GetAllGenres()
         {
             List<Genre> genres = new List<Genre>();
-            using (var connection = connectionFactory.CreateConnection())
+            using (var connection = _pool.GetConnection())
             {
                 connection.Open();
                 string query = "SELECT id, genre_name FROM genres ORDER BY genre_name";
@@ -44,7 +44,7 @@ namespace Game_Recommendation.Repositories
         // Saves the user's preferred genres to the database
         public void SaveUserPreferences(int userId, List<int> genreIds)
         {
-            using (var connection = connectionFactory.CreateConnection())
+            using (var connection = _pool.GetConnection())
             {
                 connection.Open();
 
@@ -65,7 +65,7 @@ namespace Game_Recommendation.Repositories
         // Checks if the user has any preferred genres saved
         public bool HasPreferences(int userId)
         {
-            using (var connection = connectionFactory.CreateConnection())
+            using (var connection = _pool.GetConnection())
             {
                 connection.Open();
                 string query = "SELECT COUNT(*) FROM users_preferred_genres WHERE user_id = @userId";
@@ -83,7 +83,7 @@ namespace Game_Recommendation.Repositories
         {
             List<Genre> userGenres = new List<Genre>();
 
-            using (var connection = connectionFactory.CreateConnection())
+            using (var connection = _pool.GetConnection())
             {
                 connection.Open();
 
@@ -112,7 +112,7 @@ namespace Game_Recommendation.Repositories
         // Removes a specific genre from the user's preferences
         public void RemoveUserPreference(int userId, int genreId)
         {
-            using (var connection = connectionFactory.CreateConnection())
+            using (var connection = _pool.GetConnection())
             {
                 connection.Open();
                 string query = "DELETE FROM users_preferred_genres WHERE user_id = @userId AND genre_id = @genreId";
@@ -128,7 +128,7 @@ namespace Game_Recommendation.Repositories
         // Adds a specific genre to the user's preferences
         public void AddUserPreference(int userId, int genreId)
         {
-            using (var connection = connectionFactory.CreateConnection())
+            using (var connection = _pool.GetConnection())
             {
                 connection.Open();
                 string query = "INSERT INTO users_preferred_genres (user_id, genre_id) VALUES (@userId, @genreId)";
