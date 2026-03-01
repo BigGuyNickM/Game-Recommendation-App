@@ -9,90 +9,80 @@ namespace Game_Recommendation.Repositories
     {
         private readonly ConnectionPool _pool;
 
-        public UserRepository()
+        public UserRepository(ConnectionPool pool)
         {
-            _pool = ConnectionPool.Instance;
+            _pool = pool;
         }
 
+        // Checks if a username already exists in the database
         public bool UsernameExists(string username)
         {
-            using (var connection = _pool.GetConnection())
-            {
-                connection.Open();
-                string query = "SELECT COUNT(*) FROM users WHERE username = @username";
-                using (var cmd = new MySqlCommand(query, connection))
-                {
-                    cmd.Parameters.AddWithValue("@username", username);
-                    return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
-                }
-            }
+            using var connection = _pool.GetConnection();
+            connection.Open();
+
+            string query = "SELECT COUNT(*) FROM users WHERE username = @username";
+            using var cmd = new MySqlCommand(query, connection);
+            cmd.Parameters.AddWithValue("@username", username);
+            return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
         }
 
-        // Get's a user by their username
+        // Gets a user by their username
         public User GetUserByUsername(string username)
         {
-            using (var connection = _pool.GetConnection())
-            {
-                connection.Open();
-                string query = "SELECT id, username, email, created_at FROM users WHERE username = @username";
-                using (var cmd = new MySqlCommand(query, connection))
-                {
-                    cmd.Parameters.AddWithValue("@username", username);
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        if (reader.Read())
-                        {
-                            return new User
-                            {
-                                Id = reader.GetInt32("id"),
-                                Username = reader.GetString("username"),
-                                Email = reader.GetString("email"),
-                                CreatedAt = reader.GetDateTime("created_at")
-                            };
-                        }
-                    }
-                }
-            }
-            return null;
+            using var connection = _pool.GetConnection();
+            connection.Open();
+
+            string query = "SELECT id, username, email, created_at FROM users WHERE username = @username";
+            using var cmd = new MySqlCommand(query, connection);
+            cmd.Parameters.AddWithValue("@username", username);
+            using var reader = cmd.ExecuteReader();
+            return reader.Read() ? _MapUser(reader) : null;
         }
 
         // Creates a new user in the database and returns the created user object
         public User CreateUser(string username, string email, string passwordHash)
         {
-            using (var connection = _pool.GetConnection())
+            using var connection = _pool.GetConnection();
+            connection.Open();
+
+            string query = "INSERT INTO users (username, email, password_hash) VALUES (@username, @email, @passwordHash); SELECT LAST_INSERT_ID();";
+            using var cmd = new MySqlCommand(query, connection);
+            cmd.Parameters.AddWithValue("@username", username);
+            cmd.Parameters.AddWithValue("@email", email);
+            cmd.Parameters.AddWithValue("@passwordHash", passwordHash);
+            return new User
             {
-                connection.Open();
-                string query = "INSERT INTO users (username, email, password_hash) VALUES (@username, @email, @passwordHash); SELECT LAST_INSERT_ID();";
-                using (var cmd = new MySqlCommand(query, connection))
-                {
-                    cmd.Parameters.AddWithValue("@username", username);
-                    cmd.Parameters.AddWithValue("@email", email);
-                    cmd.Parameters.AddWithValue("@passwordHash", passwordHash);
-                    int newUserId = Convert.ToInt32(cmd.ExecuteScalar());
-                    return new User
-                    {
-                        Id = newUserId,
-                        Username = username,
-                        Email = email,
-                        CreatedAt = DateTime.Now
-                    };
-                }
-            }
+                Id = Convert.ToInt32(cmd.ExecuteScalar()),
+                Username = username,
+                Email = email,
+                CreatedAt = DateTime.Now
+            };
         }
 
         // Used during login to retrieve stored hash for verification
         public string GetPasswordHash(string username)
         {
-            using (var connection = _pool.GetConnection())
+            using var connection = _pool.GetConnection();
+            connection.Open();
+
+            string query = "SELECT password_hash FROM users WHERE username = @username";
+            using var cmd = new MySqlCommand(query, connection);
+            cmd.Parameters.AddWithValue("@username", username);
+            return cmd.ExecuteScalar()?.ToString();
+        }
+
+        // --- Private helpers ---
+
+        // Maps a database reader row to a User object
+        private User _MapUser(MySqlDataReader reader)
+        {
+            return new User
             {
-                connection.Open();
-                string query = "SELECT password_hash FROM users WHERE username = @username";
-                using (var cmd = new MySqlCommand(query, connection))
-                {
-                    cmd.Parameters.AddWithValue("@username", username);
-                    return cmd.ExecuteScalar()?.ToString();
-                }
-            }
+                Id = reader.GetInt32("id"),
+                Username = reader.GetString("username"),
+                Email = reader.GetString("email"),
+                CreatedAt = reader.GetDateTime("created_at")
+            };
         }
     }
 }

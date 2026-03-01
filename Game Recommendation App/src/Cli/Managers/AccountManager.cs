@@ -1,9 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using Game_Recommendation.Cli.Config;
+﻿using Game_Recommendation.Cli.Config;
 using Game_Recommendation.Cli.Utils;
 using Game_Recommendation.Models;
 using Game_Recommendation.Repositories;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Game_Recommendation.Cli.Managers
 {
@@ -13,17 +14,17 @@ namespace Game_Recommendation.Cli.Managers
         private readonly GenreManager genreManager;
         private readonly GenreRepository genreRepo;
 
-        public AccountManager(User user)
+        public AccountManager(User user, GenreManager genreManager, GenreRepository genreRepo)
         {
             currentUser = user;
-            genreManager = new GenreManager();
-            genreRepo = new GenreRepository();
+            this.genreManager = genreManager;
+            this.genreRepo = genreRepo;
         }
 
         protected override void _ShowMenu()
         {
             ConsoleHelper.PrintHeader("MANAGE ACCOUNT");
-            ConsoleHelper.PrintColored($"{currentUser.Username}\n", ColorScheme.Highlight);
+            ConsoleHelper.PrintColored($"{currentUser.Username}\n", AppConfig.Highlight);
             ConsoleHelper.PrintOptions(
                 ("1", "Manage Preferred Genres"),
                 ("2", "Manage Played Games"),
@@ -45,44 +46,44 @@ namespace Game_Recommendation.Cli.Managers
 
         private void _ViewProfile()
         {
-            List<Genre> preferredGenres = genreRepo.GetUserPreferredGenres(currentUser.Id);
-
             ConsoleHelper.PrintHeader("VIEW PROFILE");
 
-            ConsoleHelper.PrintLine(
-                ("Username:  ", ColorScheme.Muted),
-                (currentUser.Username, ColorScheme.Highlight)
-            );
-            ConsoleHelper.PrintLine(
-                ("Email:     ", ColorScheme.Muted),
-                (currentUser.Email, ColorScheme.Highlight)
-            );
-            ConsoleHelper.PrintLine(
-                ("Joined:    ", ColorScheme.Muted),
-                (currentUser.CreatedAt.ToString("MMMM dd, yyyy"), ColorScheme.Highlight)
-            );
+            List<Genre> preferredGenres = genreRepo.GetUserPreferredGenres(currentUser.Id);
+            string genreList = preferredGenres.Count == 0
+                ? "  None set."
+                : "\n" + string.Join("\n", preferredGenres.Select(g => $"  • {g.GenreName}"));
 
-            Console.WriteLine();
-            ConsoleHelper.PrintColored("Preferred Genres:", ColorScheme.Muted);
+            ConsoleHelper.PrintColored(
+                ("Username:  ", AppConfig.Muted),
+                (currentUser.Username, AppConfig.Highlight)
+            ); // USERNAME
+            ConsoleHelper.PrintColored(
+                ("Email:     ", AppConfig.Muted),
+                (currentUser.Email, AppConfig.Highlight)
+            ); // EMAIL
+            ConsoleHelper.PrintColored(
+                ("Joined:    ", AppConfig.Muted),
+                (currentUser.CreatedAt.ToString("MMMM dd, yyyy"), AppConfig.Highlight)
+            ); // JOINED DATE
 
-            if (preferredGenres.Count == 0)
-                ConsoleHelper.PrintColored("  None set.", ColorScheme.Default);
-            else
-                foreach (Genre genre in preferredGenres)
-                    ConsoleHelper.PrintColored($"  • {genre.GenreName}", ColorScheme.Default);
+            
 
-            Console.WriteLine();
-            ConsoleHelper.PrintColored("Played Games:", ColorScheme.Muted);
-            ConsoleHelper.PrintColored("  (Work in Progress)", ColorScheme.Default);
+            ConsoleHelper.PrintColored(
+                ("\nPreferred Genres:", AppConfig.Muted),
+                (genreList, AppConfig.Default)
+            ); // PREFERRED GENRES
 
-            InputHelper.WaitForKey();
+            ConsoleHelper.PrintColored("\nPlayed Games:", AppConfig.Muted);
+            ConsoleHelper.PrintColored("  (Work in Progress)", AppConfig.Default);
+
+            InputHelper.WaitForKey("Press any key to go back...");
         }
 
         private void _ManagePlayedGames()
         {
             ConsoleHelper.PrintHeader("MANAGE PLAYED GAMES");
-            ConsoleHelper.PrintColored("(Work in Progress)", ColorScheme.Muted);
-            InputHelper.WaitForKey();
+            ConsoleHelper.PrintColored("(Work in Progress)", AppConfig.Muted);
+            InputHelper.WaitForKey("Press any key to go back...");
         }
     }
 }

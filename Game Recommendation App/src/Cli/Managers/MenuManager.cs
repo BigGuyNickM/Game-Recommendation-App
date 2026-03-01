@@ -10,16 +10,16 @@ namespace Game_Recommendation.Cli.Managers
         private readonly User currentUser;
         private readonly AccountManager accountManager;
 
-        public MenuManager(User user)
+        public MenuManager(User user, AccountManager accountManager)
         {
             currentUser = user;
-            accountManager = new AccountManager(user);
+            this.accountManager = accountManager;
         }
 
         protected override void _ShowMenu()
         {
             ConsoleHelper.PrintHeader("GAME RECOMMENDATION SYSTEM");
-            ConsoleHelper.PrintColored($"Welcome, {currentUser.Username}\n", ColorScheme.Muted);
+            ConsoleHelper.PrintColored($"Welcome, {currentUser.Username}!\n", AppConfig.Success);
             ConsoleHelper.PrintOptions(
                 ("1", "Browse Games"),
                 ("2", "Manage Account"),
@@ -40,8 +40,8 @@ namespace Game_Recommendation.Cli.Managers
         private void _BrowseGames()
         {
             ConsoleHelper.PrintHeader("BROWSE GAMES");
-            ConsoleHelper.PrintColored("(Work in Progress)", ColorScheme.Muted);
-            InputHelper.WaitForKey();
+            ConsoleHelper.PrintColored("(Work in Progress)", AppConfig.Muted);
+            InputHelper.WaitForKey("Press any key to go back...");
         }
     }
 }

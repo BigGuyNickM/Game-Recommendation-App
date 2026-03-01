@@ -106,7 +106,7 @@
     <Compile Include="src\Cli\Managers\MenuManager.cs" />
     <Compile Include="src\Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="src\Cli\Config\ColorScheme.cs" />
+    <Compile Include="src\Cli\Config\AppConfig.cs" />
     <Compile Include="src\Cli\Utils\ConsoleHelper.cs" />
     <Compile Include="src\Cli\Utils\InputHelper.cs" />
     <Compile Include="src\Cli\Utils\ValidationHelper.cs" />

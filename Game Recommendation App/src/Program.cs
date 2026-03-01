@@ -1,8 +1,10 @@
-using System;
 using Game_Recommendation.Cli;
-using Game_Recommendation.Cli.Utils;
 using Game_Recommendation.Cli.Managers;
+using Game_Recommendation.Cli.Utils;
+using Game_Recommendation.Data;
 using Game_Recommendation.Models;
+using Game_Recommendation.Repositories;
+using System;
 
 
 namespace Game_Recommendation
@@ -11,7 +13,18 @@ namespace Game_Recommendation
     {
         static void Main(string[] args)
         {
-            AuthManager authManager = new AuthManager();
+            ConnectionPool pool = ConnectionPool.Instance;
+            UserRepository userRepo = new UserRepository(pool);
+            GenreRepository genreRepo = new GenreRepository(pool);
+            GameRepository gameRepo = new GameRepository(pool);
+            GenreManager genreManager = new GenreManager(genreRepo);
+            AuthManager authManager = new AuthManager(userRepo);
+
+            _RunApp(authManager, genreManager, genreRepo);
+        }
+
+        private static void _RunApp(AuthManager authManager, GenreManager genreManager, GenreRepository genreRepo)
+        {
             while (true)
             {
                 ConsoleHelper.PrintHeader("GAME RECOMMENDATION SYSTEM");
@@ -21,7 +34,6 @@ namespace Game_Recommendation
                     ("0", "Exit")
                 );
                 Console.WriteLine();
-
                 string choice = InputHelper.GetInput("Please choose an option:");
 
                 if (choice == "0")
@@ -31,26 +43,22 @@ namespace Game_Recommendation
                     return;
                 }
 
-                
-                User currentUser = choice == "1" ? authManager.Login()
-                 : choice == "2" ? authManager.Signup()
-                 : null;
-
+                User currentUser = choice switch
+                {
+                    "1" => authManager.Login(),
+                    "2" => authManager.Signup(),
+                    _ => null
+                };
                 if (currentUser == null) continue;
 
                 if (currentUser.IsNewUser)
-                {
-                    GenreManager genreManager = new GenreManager();
                     genreManager.SelectPreferences(currentUser.Id);
-                }
                 else
-                {
                     InputHelper.WaitForKey("\nPress any key to continue to main menu...");
-                }
 
-                MenuManager menu = new MenuManager(currentUser);
+                AccountManager accountManager = new AccountManager(currentUser, genreManager, genreRepo);
+                MenuManager menu = new MenuManager(currentUser, accountManager);
                 menu.Run();
-
                 Console.WriteLine("\nThank you for using the Game Recommendation System!");
                 return;
             }

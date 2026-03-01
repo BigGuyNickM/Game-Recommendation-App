@@ -6,7 +6,7 @@ namespace Game_Recommendation.Data
 {
     public class ConnectionPool
     {
-        private static readonly Lazy<ConnectionPool> _instance = new Lazy<ConnectionPool>(() => new ConnectionPool());
+        private static readonly Lazy<ConnectionPool> _instance = new(() => new ConnectionPool());
 
         public static ConnectionPool Instance => _instance.Value;
 
@@ -18,10 +18,7 @@ namespace Game_Recommendation.Data
                 .ConnectionStrings["GameStoreDB"].ConnectionString;
         }
 
-        public MySqlConnection GetConnection()
-        {
-            return new MySqlConnection(_connectionString);
-        }
+        public MySqlConnection GetConnection() => new MySqlConnection(_connectionString);
 
         public bool TestConnection()
         {

@@ -1,45 +1,39 @@
-﻿using System.Text.RegularExpressions;
+﻿using Game_Recommendation.Cli.Config;
+using System.Text.RegularExpressions;
 
 namespace Game_Recommendation.Cli.Utils
 {
     internal static class ValidationHelper
     {
-        public static bool IsValidUsername(string username, out string error)
+        public static string? ValidateUsername(string username)
         {
-            if (username.Length < 3 || username.Length > 30)
-            {
-                error = "Username must be between 3 and 30 characters.";
-                return false;
-            }
+            if (string.IsNullOrWhiteSpace(username))
+                return "Username cannot be empty.";
+            if (username.Length < AppConfig.UsernameMinLength || username.Length > AppConfig.UsernameMaxLength)
+                return $"Username must be between {AppConfig.UsernameMinLength} and {AppConfig.UsernameMaxLength} characters.";
             if (!Regex.IsMatch(username, @"^[a-zA-Z0-9]+$"))
-            {
-                error = "Username can only contain letters and numbers.";
-                return false;
-            }
-            error = null;
-            return true;
+                return "Username can only contain letters and numbers.";
+            return null;
         }
 
-        public static bool IsValidEmail(string email, out string error)
+        public static string? ValidateEmail(string email)
         {
+            if (string.IsNullOrWhiteSpace(email))
+                return "Email cannot be empty.";
             if (!Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[a-zA-Z]{2,}$"))
-            {
-                error = "Please enter a valid email address (e.g. user@example.com).";
-                return false;
-            }
-            error = null;
-            return true;
+                return "Please enter a valid email address (e.g. user@example.com).";
+            return null;
         }
 
-        public static bool IsValidPassword(string password, out string error)
+        public static string? ValidatePassword(string password)
         {
-            if (password.Length < 6)
-            {
-                error = "Password must be at least 6 characters.";
-                return false;
-            }
-            error = null;
-            return true;
+            if (string.IsNullOrWhiteSpace(password))
+                return "Password cannot be empty.";
+            if (password.Length < AppConfig.PasswordMinLength)
+                return $"Password must be at least {AppConfig.PasswordMinLength} characters.";
+            if (GetPasswordStrength(password).score <= AppConfig.PasswordStrengthMedium)
+                return "Password is too weak. Try adding uppercase letters, numbers, or symbols.";
+            return null;
         }
 
         public static (string label, int score) GetPasswordStrength(string password)
@@ -50,8 +44,12 @@ namespace Game_Recommendation.Cli.Utils
             if (Regex.IsMatch(password, @"[A-Z]") && Regex.IsMatch(password, @"[a-z]")) score++;
             if (Regex.IsMatch(password, @"[0-9]")) score++;
             if (Regex.IsMatch(password, @"[^a-zA-Z0-9]")) score++;
-
-            string label = score <= 1 ? "Weak" : score <= 3 ? "Medium" : "Strong";
+            string label = score switch
+            {
+                <= AppConfig.PasswordStrengthWeak => "Weak",
+                <= AppConfig.PasswordStrengthMedium => "Medium",
+                _ => "Strong"
+            };
             return (label, score);
         }
     }

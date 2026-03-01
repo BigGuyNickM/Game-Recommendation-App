@@ -11,36 +11,31 @@ namespace Game_Recommendation.Cli.Managers
     public class GenreManager
     {
         private readonly GenreRepository genreRepo;
-        private const int Columns = 3;
-        private const int MinGenres = 3;
 
-        public GenreManager()
+        public GenreManager(GenreRepository genreRepo)
         {
-            genreRepo = new GenreRepository();
+            this.genreRepo = genreRepo;
         }
 
         // For signup: select preferences from scratch
         public void SelectPreferences(int userId)
         {
             List<Genre> allGenres = genreRepo.GetAllGenres();
-            List<int> selectedIds = new List<int>();
+            List<int> selectedIds = new();
             string error = null;
 
             while (true)
             {
-                _RenderScreen("SELECT YOUR FAVORITE GENRES", $"Pick at least {MinGenres} genres you enjoy", allGenres, selectedIds, error);
+                _PrintGenreMenu("SELECT YOUR FAVORITE GENRES", $"Pick at least {AppConfig.MinGenreSelections} genres you enjoy", allGenres, selectedIds, error);
                 error = null;
-
                 string input = InputHelper.GetInput();
-                if (input == "0")
+
+                if (input == "0" && selectedIds.Count < AppConfig.MinGenreSelections)
                 {
-                    if (selectedIds.Count < MinGenres)
-                    {
-                        error = $"Please select at least {MinGenres} genres before finishing.";
-                        continue;
-                    }
-                    break;
+                    error = $"Please select at least {AppConfig.MinGenreSelections} genres before finishing.";
+                    continue;
                 }
+                if (input == "0") break;
 
                 error = _ToggleGenreInList(allGenres, selectedIds, input);
             }
@@ -52,14 +47,13 @@ namespace Game_Recommendation.Cli.Managers
         public void ManagePreferences(int userId)
         {
             string error = null;
+            List<Genre> allGenres = genreRepo.GetAllGenres();
 
             while (true)
             {
-                List<Genre> allGenres = genreRepo.GetAllGenres();
-                List<Genre> userGenres = genreRepo.GetUserPreferredGenres(userId);
-                List<int> userGenreIds = userGenres.Select(g => g.Id).ToList();
+                List<int> userGenreIds = genreRepo.GetUserPreferredGenres(userId).Select(g => g.Id).ToList();
 
-                _RenderScreen("MANAGE PREFERRED GENRES", $"You have {userGenreIds.Count} genre(s) selected (minimum {MinGenres} required)", allGenres, userGenreIds, error);
+                _PrintGenreMenu("MANAGE PREFERRED GENRES", $"You have {userGenreIds.Count} genre(s) selected (minimum {AppConfig.MinGenreSelections} required)", allGenres, userGenreIds, error);
                 error = null;
 
                 string input = InputHelper.GetInput();
@@ -71,7 +65,7 @@ namespace Game_Recommendation.Cli.Managers
 
         // --- Private helpers ---
 
-        private void _RenderScreen(string title, string subtitle, List<Genre> allGenres, List<int> selectedIds, string error)
+        private void _PrintGenreMenu(string title, string subtitle, List<Genre> allGenres, List<int> selectedIds, string error)
         {
             ConsoleHelper.PrintHeader(title);
             Console.WriteLine(subtitle + "\n");
@@ -87,43 +81,30 @@ namespace Game_Recommendation.Cli.Managers
 
         private void _PrintGenreGrid(List<Genre> allGenres, List<int> selectedIds)
         {
-            // Calculate cell width based on longest genre name
             int maxNameLength = allGenres.Max(g => g.GenreName.Length);
             int numberWidth = allGenres.Count.ToString().Length;
-            int cellWidth = numberWidth + maxNameLength + 10; // padding for "(X) " and spacing
 
-            for (int i = 0; i < allGenres.Count; i++)
+            Action[] items = allGenres.Select((genre, i) =>
             {
-                Genre genre = allGenres[i];
                 bool isSelected = selectedIds.Contains(genre.Id);
-                int displayNumber = i + 1;
+                ConsoleColor checkColor = isSelected ? AppConfig.Success : AppConfig.Default;
+                ConsoleColor nameColor = isSelected ? AppConfig.Highlight : AppConfig.Default;
+                string checkbox = isSelected ? "(X) " : "( ) ";
 
-                // Number
-                ConsoleHelper.PrintColored($"[{displayNumber}] ".PadRight(numberWidth + 3), ColorScheme.Input, newLine: false);
-
-                // Checkbox
-                if (isSelected)
+                return (Action)(() =>
                 {
-                    ConsoleHelper.PrintColored("(X) ", ColorScheme.Success, newLine: false);
-                    ConsoleHelper.PrintColored(genre.GenreName.PadRight(maxNameLength), ColorScheme.Highlight, newLine: false);
-                }
-                else
-                {
-                    ConsoleHelper.PrintColored("( ) ", ColorScheme.Default, newLine: false);
-                    ConsoleHelper.PrintColored(genre.GenreName.PadRight(maxNameLength), ColorScheme.Default, newLine: false);
-                }
+                    ConsoleHelper.PrintColored($"[{i + 1}] ".PadRight(numberWidth + 3), AppConfig.Input, newLine: false);
+                    ConsoleHelper.PrintColored(checkbox, checkColor, newLine: false);
+                    ConsoleHelper.PrintColored(genre.GenreName.PadRight(maxNameLength), nameColor, newLine: false);
+                });
+            }).ToArray();
 
-                // New row every 3 columns
-                if ((i + 1) % Columns == 0 || i == allGenres.Count - 1)
-                    Console.WriteLine();
-                else
-                    Console.Write("   ");
-            }
+            ConsoleHelper.PrintOptions(items, AppConfig.DefaultGridColumns);
         }
 
         private string _ToggleGenreInList(List<Genre> allGenres, List<int> selectedIds, string input)
         {
-            Genre genre = _ParseGenreInput(allGenres, input, out string error);
+            var (genre, error) = _ParseGenreInput(allGenres, input);
             if (genre == null) return error;
 
             if (selectedIds.Contains(genre.Id))
@@ -136,35 +117,26 @@ namespace Game_Recommendation.Cli.Managers
 
         private string _ToggleGenreInDatabase(List<Genre> allGenres, List<int> userGenreIds, string input, int userId)
         {
-            Genre genre = _ParseGenreInput(allGenres, input, out string error);
+            var (genre, error) = _ParseGenreInput(allGenres, input);
             if (genre == null) return error;
 
-            if (userGenreIds.Contains(genre.Id))
-            {
-                if (userGenreIds.Count <= MinGenres)
-                    return $"Cannot remove — you must have at least {MinGenres} genres selected.";
+            if (userGenreIds.Contains(genre.Id) && userGenreIds.Count <= AppConfig.MinGenreSelections)
+                return $"Cannot remove — you must have at least {AppConfig.MinGenreSelections} genres selected.";
 
+            if (userGenreIds.Contains(genre.Id))
                 genreRepo.RemoveUserPreference(userId, genre.Id);
-            }
             else
-            {
                 genreRepo.AddUserPreference(userId, genre.Id);
-            }
 
             return null;
         }
 
-        // Shared input parsing and index validation
-        private Genre _ParseGenreInput(List<Genre> allGenres, string input, out string error)
+        private (Genre genre, string error) _ParseGenreInput(List<Genre> allGenres, string input)
         {
             if (!int.TryParse(input, out int number) || number < 1 || number > allGenres.Count)
-            {
-                error = $"Invalid input. Enter a number between 1 and {allGenres.Count}.";
-                return null;
-            }
+                return (null, $"Invalid input. Enter a number between 1 and {allGenres.Count}.");
 
-            error = null;
-            return allGenres[number - 1];
+            return (allGenres[number - 1], null);
         }
     }
 }

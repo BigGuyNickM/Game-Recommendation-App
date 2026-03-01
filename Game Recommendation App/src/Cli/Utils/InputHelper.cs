@@ -1,6 +1,7 @@
+using Game_Recommendation.Cli.Config;
 using System;
 using System.Text;
-using Game_Recommendation.Cli.Config;
+using System.Text.RegularExpressions;
 
 namespace Game_Recommendation.Cli.Utils
 {
@@ -12,24 +13,27 @@ namespace Game_Recommendation.Cli.Utils
             return Console.ReadLine()?.Trim() ?? "";
         }
 
-        public static bool Confirm(string prompt, string yesValue = "y")
+        public static bool Confirm(string prompt)
         {
-            return GetInput(prompt).ToLower() == yesValue;
+            while (true)
+            {
+                string input = Regex.Replace(GetInput(prompt).ToLower(), @"[^a-z]", "");
+                if (input is "y" or "yes" or "yep" or "yeah" or "yea") return true;
+                if (input is "n" or "no" or "nah") return false;
+                ConsoleHelper.PrintError("Please enter y or n.");
+            }
         }
 
-        public static void WaitForKey(string message = "\nPress any key to continue...", bool clearAfter = true)
+        public static void WaitForKey(string message = "\nPress any key to continue...")
         {
             Console.WriteLine(message);
             Console.ReadKey(intercept: true);
-            if (clearAfter)
-                Console.Clear();
         }
 
         public static string GetMaskedInput(string prompt = "", bool showStrength = false)
         {
             PrintPrompt(prompt, showStrength);
-
-            StringBuilder input = new StringBuilder();
+            StringBuilder input = new();
             int strengthRow = showStrength ? Console.CursorTop - 2 : -1;
 
             while (true)
@@ -41,13 +45,10 @@ namespace Game_Recommendation.Cli.Utils
                     Console.WriteLine();
                     break;
                 }
-                else if (key.Key == ConsoleKey.Backspace)
+                if (key.Key == ConsoleKey.Backspace && input.Length > 0)
                 {
-                    if (input.Length > 0)
-                    {
-                        input.Remove(input.Length - 1, 1);
-                        Console.Write("\b \b");
-                    }
+                    input.Remove(input.Length - 1, 1);
+                    Console.Write("\b \b");
                 }
                 else if (!char.IsControl(key.KeyChar))
                 {
@@ -67,15 +68,14 @@ namespace Game_Recommendation.Cli.Utils
         private static void PrintPrompt(string prompt, bool showStrength = false)
         {
             if (!string.IsNullOrEmpty(prompt))
-                Console.WriteLine(prompt + "\n");
+                Console.WriteLine($"{prompt}\n");
 
             if (showStrength)
             {
-                ConsoleHelper.PrintPasswordStrength("None", 0);
-                Console.WriteLine();
+                ConsoleHelper.PrintPasswordStrength("None\n", 0);
             }
 
-            ConsoleHelper.PrintColored("> ", ColorScheme.Input, newLine: false);
+            ConsoleHelper.PrintColored("> ", AppConfig.Input, newLine: false);
         }
 
         private static void UpdateStrengthDisplay(string input, int strengthRow)
