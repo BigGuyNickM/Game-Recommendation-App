@@ -6,21 +6,20 @@ using Game_Recommendation.Cli.Config;
 using Game_Recommendation.Database.Repositories;
 using Game_Recommendation.Models;
 
-namespace Game_Recommendation.Cli.Managers
+namespace Game_Recommendation.Cli.Managers.Account
 {
     public class GenreManager
     {
-        private readonly GenreRepository genreRepo;
+        private readonly GenreRepository _genreRepo;
 
         public GenreManager(GenreRepository genreRepo)
         {
-            this.genreRepo = genreRepo;
+            _genreRepo = genreRepo;
         }
 
-        // For signup: select preferences from scratch
         public void SelectPreferences(int userId)
         {
-            List<Genre> allGenres = genreRepo.GetAllGenres();
+            List<Genre> allGenres = _genreRepo.GetAllGenres();
             List<int> selectedIds = new();
             string error = null;
 
@@ -40,18 +39,17 @@ namespace Game_Recommendation.Cli.Managers
                 error = _ToggleGenreInList(allGenres, selectedIds, input);
             }
 
-            genreRepo.SaveUserPreferences(userId, selectedIds);
+            _genreRepo.SaveUserPreferences(userId, selectedIds);
         }
 
-        // For menu: manage existing preferences
         public void ManagePreferences(int userId)
         {
+            List<Genre> allGenres = _genreRepo.GetAllGenres();
             string error = null;
-            List<Genre> allGenres = genreRepo.GetAllGenres();
 
             while (true)
             {
-                List<int> userGenreIds = genreRepo.GetUserPreferredGenres(userId).Select(g => g.Id).ToList();
+                List<int> userGenreIds = _genreRepo.GetUserPreferredGenres(userId).Select(g => g.Id).ToList();
 
                 _PrintGenreMenu("MANAGE PREFERRED GENRES", $"You have {userGenreIds.Count} genre(s) selected (minimum {AppConfig.MinGenreSelections} required)", allGenres, userGenreIds, error);
                 error = null;
@@ -68,15 +66,13 @@ namespace Game_Recommendation.Cli.Managers
         private void _PrintGenreMenu(string title, string subtitle, List<Genre> allGenres, List<int> selectedIds, string error)
         {
             ConsoleHelper.PrintHeader(title);
-            Console.WriteLine(subtitle + "\n");
+            ConsoleHelper.PrintColored(subtitle + "\n", AppConfig.Default);
             _PrintGenreGrid(allGenres, selectedIds);
-            Console.WriteLine($"\nSelected: {selectedIds.Count}\n");
+            ConsoleHelper.PrintColored($"\nSelected: {selectedIds.Count}\n", AppConfig.Default);
             ConsoleHelper.PrintOptions(("0", "Done"));
 
-            if (error != null)
-                ConsoleHelper.PrintError("\n" + error);
-
-            Console.WriteLine();
+            if (error == null) return;
+            ConsoleHelper.PrintError("\n" + error + "\n");
         }
 
         private void _PrintGenreGrid(List<Genre> allGenres, List<int> selectedIds)
@@ -124,9 +120,9 @@ namespace Game_Recommendation.Cli.Managers
                 return $"Cannot remove — you must have at least {AppConfig.MinGenreSelections} genres selected.";
 
             if (userGenreIds.Contains(genre.Id))
-                genreRepo.RemoveUserPreference(userId, genre.Id);
+                _genreRepo.RemoveUserPreference(userId, genre.Id);
             else
-                genreRepo.AddUserPreference(userId, genre.Id);
+                _genreRepo.AddUserPreference(userId, genre.Id);
 
             return null;
         }

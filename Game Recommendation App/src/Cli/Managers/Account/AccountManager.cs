@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Game_Recommendation.Cli.Managers
+namespace Game_Recommendation.Cli.Managers.Account
 {
     public class AccountManager : BaseMenu
     {

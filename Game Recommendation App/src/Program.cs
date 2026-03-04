@@ -1,6 +1,8 @@
-using Game_Recommendation.Cli;
 using Game_Recommendation.Cli.Managers;
 using Game_Recommendation.Cli.Utils;
+using Game_Recommendation.Cli.Managers.Auth;
+using Game_Recommendation.Cli.Managers.Browse;
+using Game_Recommendation.Cli.Managers.Account;
 using Game_Recommendation.Database;
 using Game_Recommendation.Models;
 using Game_Recommendation.Database.Repositories;

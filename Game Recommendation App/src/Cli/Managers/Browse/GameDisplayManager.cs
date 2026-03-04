@@ -1,11 +1,12 @@
-﻿using Game_Recommendation.Cli.Config;
+﻿using System;
+using System.Collections.Generic;
+using Game_Recommendation.Cli.Config;
 using Game_Recommendation.Cli.Utils;
 using Game_Recommendation.Models;
 using Game_Recommendation.Database.Repositories;
-using System;
-using System.Collections.Generic;
 
-namespace Game_Recommendation.Cli.Managers
+
+namespace Game_Recommendation.Cli.Managers.Browse
 {
     public class GameDisplayManager
     {

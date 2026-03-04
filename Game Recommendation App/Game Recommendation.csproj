@@ -99,14 +99,14 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="src\Cli\Managers\AccountManager.cs" />
-    <Compile Include="src\Cli\Managers\AuthManager.cs" />
+    <Compile Include="src\Cli\Managers\Account\AccountManager.cs" />
+    <Compile Include="src\Cli\Managers\Auth\AuthManager.cs" />
     <Compile Include="src\Cli\Managers\BaseMenu.cs" />
-    <Compile Include="src\Cli\Managers\BrowseManager.cs" />
-    <Compile Include="src\Cli\Managers\GameDisplayManager.cs" />
-    <Compile Include="src\Cli\Managers\GenreManager.cs" />
+    <Compile Include="src\Cli\Managers\Browse\BrowseManager.cs" />
+    <Compile Include="src\Cli\Managers\Browse\GameDisplayManager.cs" />
+    <Compile Include="src\Cli\Managers\Account\GenreManager.cs" />
     <Compile Include="src\Cli\Managers\MenuManager.cs" />
-    <Compile Include="src\Cli\Managers\SearchManager.cs" />
+    <Compile Include="src\Cli\Managers\Browse\SearchManager.cs" />
     <Compile Include="src\Models\UserGame.cs" />
     <Compile Include="src\Models\UserWishlist.cs" />
     <Compile Include="src\Program.cs" />

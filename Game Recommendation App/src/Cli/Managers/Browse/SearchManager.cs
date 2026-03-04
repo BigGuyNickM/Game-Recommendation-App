@@ -1,13 +1,14 @@
-﻿using Game_Recommendation.Cli.Config;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Game_Recommendation.Cli.Config;
 using Game_Recommendation.Cli.Utils;
 using Game_Recommendation.Models;
 using Game_Recommendation.Database.Repositories;
 using Game_Recommendation.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
-namespace Game_Recommendation.Cli.Managers
+
+namespace Game_Recommendation.Cli.Managers.Browse
 {
     public class SearchManager : BaseMenu
     {

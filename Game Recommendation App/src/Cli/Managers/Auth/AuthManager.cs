@@ -4,7 +4,7 @@ using Game_Recommendation.Models;
 using Game_Recommendation.Database.Repositories;
 using System;
 
-namespace Game_Recommendation.Cli.Managers
+namespace Game_Recommendation.Cli.Managers.Auth
 {
     public class AuthManager
     {
