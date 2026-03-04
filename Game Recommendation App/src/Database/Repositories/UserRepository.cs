@@ -13,24 +13,22 @@ namespace Game_Recommendation.Database.Repositories
             _pool = pool;
         }
 
-        // Checks if a username already exists in the database
+        #region Public
+
         public bool UsernameExists(string username)
         {
             using var connection = _pool.GetConnection();
             connection.Open();
-
             string query = "SELECT COUNT(*) FROM users WHERE username = @username";
             using var cmd = new MySqlCommand(query, connection);
             cmd.Parameters.AddWithValue("@username", username);
             return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
         }
 
-        // Gets a user by their username
         public User GetUserByUsername(string username)
         {
             using var connection = _pool.GetConnection();
             connection.Open();
-
             string query = "SELECT id, username, email, created_at FROM users WHERE username = @username";
             using var cmd = new MySqlCommand(query, connection);
             cmd.Parameters.AddWithValue("@username", username);
@@ -38,12 +36,11 @@ namespace Game_Recommendation.Database.Repositories
             return reader.Read() ? _MapUser(reader) : null;
         }
 
-        // Creates a new user in the database and returns the created user object
+        // INSERT then immediately grab the new row's id via LAST_INSERT_ID()
         public User CreateUser(string username, string email, string passwordHash)
         {
             using var connection = _pool.GetConnection();
             connection.Open();
-
             string query = "INSERT INTO users (username, email, password_hash) VALUES (@username, @email, @passwordHash); SELECT LAST_INSERT_ID();";
             using var cmd = new MySqlCommand(query, connection);
             cmd.Parameters.AddWithValue("@username", username);
@@ -58,30 +55,29 @@ namespace Game_Recommendation.Database.Repositories
             };
         }
 
-        // Used during login to retrieve stored hash for verification
+        // Fetches just the hash — we don't want to pull the full user object before verifying
         public string GetPasswordHash(string username)
         {
             using var connection = _pool.GetConnection();
             connection.Open();
-
             string query = "SELECT password_hash FROM users WHERE username = @username";
             using var cmd = new MySqlCommand(query, connection);
             cmd.Parameters.AddWithValue("@username", username);
             return cmd.ExecuteScalar()?.ToString();
         }
 
-        // --- Private helpers ---
+        #endregion
 
-        // Maps a database reader row to a User object
-        private User _MapUser(MySqlDataReader reader)
+        #region Helpers
+
+        private User _MapUser(MySqlDataReader reader) => new User
         {
-            return new User
-            {
-                Id = reader.GetInt32("id"),
-                Username = reader.GetString("username"),
-                Email = reader.GetString("email"),
-                CreatedAt = reader.GetDateTime("created_at")
-            };
-        }
+            Id = reader.GetInt32("id"),
+            Username = reader.GetString("username"),
+            Email = reader.GetString("email"),
+            CreatedAt = reader.GetDateTime("created_at")
+        };
+
+        #endregion
     }
 }

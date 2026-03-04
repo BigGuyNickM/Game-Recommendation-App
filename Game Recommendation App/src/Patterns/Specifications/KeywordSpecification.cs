@@ -1,33 +1,25 @@
 ﻿using Game_Recommendation.Cli.Config;
 using Game_Recommendation.Models;
 using System;
-
 namespace Game_Recommendation.Patterns.Specifications
 {
     public class KeywordSpecification : ISpecification<Game>
     {
         private readonly string _keyword;
-
         public KeywordSpecification(string keyword)
         {
             _keyword = keyword.ToLower().Trim();
         }
-
         public bool IsSatisfiedBy(Game game)
         {
             string title = game.Title.ToLower();
-
             if (title.Contains(_keyword))
                 return true;
-
             if (_keyword.Length < AppConfig.FuzzyMatchMinLength)
                 return false;
-
             return _FuzzyMatch(title, _keyword);
         }
-
         // --- Private helpers ---
-
         private static bool _FuzzyMatch(string title, string keyword)
         {
             foreach (string word in title.Split(' '))
@@ -38,17 +30,13 @@ namespace Game_Recommendation.Patterns.Specifications
             }
             return false;
         }
-
         private static int _LevenshteinDistance(string a, string b)
         {
             if (a.Length == 0) return b.Length;
             if (b.Length == 0) return a.Length;
-
             int[,] matrix = new int[a.Length + 1, b.Length + 1];
-
             for (int i = 0; i <= a.Length; i++) matrix[i, 0] = i;
             for (int j = 0; j <= b.Length; j++) matrix[0, j] = j;
-
             for (int i = 1; i <= a.Length; i++)
                 for (int j = 1; j <= b.Length; j++)
                 {
@@ -58,7 +46,6 @@ namespace Game_Recommendation.Patterns.Specifications
                         matrix[i - 1, j - 1] + cost
                     );
                 }
-
             return matrix[a.Length, b.Length];
         }
     }

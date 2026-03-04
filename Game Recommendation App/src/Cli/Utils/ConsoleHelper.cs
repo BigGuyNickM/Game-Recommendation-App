@@ -8,20 +8,8 @@ namespace Game_Recommendation.Cli.Utils
 {
     internal static class ConsoleHelper
     {
-        public static void PrintHeader(string title)
-        {
-            Console.Clear();
-            Console.WriteLine("\x1b[3J");
-            int width = Math.Max(AppConfig.HeaderMinWidth, title.Length + (AppConfig.HeaderPadding + 2));
-            int innerWidth = width - 2;
-            string centeredTitle = title.PadLeft((innerWidth + title.Length) / 2).PadRight(innerWidth);
-            string top = $"╔{new string('═', innerWidth)}╗";
-            string middle = $"║{centeredTitle}║";
-            string bottom = $"╚{new string('═', innerWidth)}╝";
-            PrintColored(top + "\n" + middle + "\n" + bottom + "\n", AppConfig.Header);
-        }
+        #region Output
 
-        // Prints a single colored segment
         public static void PrintColored(string text, ConsoleColor color, bool newLine = true)
         {
             Console.ForegroundColor = color;
@@ -42,9 +30,21 @@ namespace Game_Recommendation.Cli.Utils
             Console.WriteLine();
         }
 
-        public static void PrintError(string message)
+        public static void PrintError(string message) => PrintColored(message, AppConfig.Error);
+
+        public static void PrintHeader(string title)
         {
-            PrintColored(message, AppConfig.Error);
+            Console.Clear();
+            Console.WriteLine("\x1b[3J"); // clear scrollback buffer
+            int width = Math.Max(AppConfig.HeaderMinWidth, title.Length + AppConfig.HeaderPadding + 2);
+            int innerWidth = width - 2;
+            string centeredTitle = title.PadLeft((innerWidth + title.Length) / 2).PadRight(innerWidth);
+            PrintColored(
+                $"╔{new string('═', innerWidth)}╗\n" +
+                $"║{centeredTitle}║\n" +
+                $"╚{new string('═', innerWidth)}╝\n",
+                AppConfig.Header
+            );
         }
 
         public static void PrintPasswordStrength(string label, int score)
@@ -58,17 +58,23 @@ namespace Game_Recommendation.Cli.Utils
             PrintColored(("Password strength: ", AppConfig.Highlight), (label, color));
         }
 
-        // Prints options vertically: [1] Option 1    [2] Option 2    [0] Exit
+        #endregion
+
+        #region Options
+
+        // Prints options vertically: [A] Option 1    [B] Option 2
         public static void PrintOptions(params (string key, string label)[] options)
         {
             foreach (var (key, label) in options)
                 PrintColored(($"[{key}]", AppConfig.Input), ($" {label}\n", AppConfig.Default));
         }
+
         // Overload for a single option
         public static void PrintOptions(string key, string label)
         {
             PrintColored(($"[{key}]", AppConfig.Input), ($" {label}\n", AppConfig.Default));
         }
+
         // Overload for printing options as a grid
         public static void PrintOptions(Action[] items, int columns = AppConfig.DefaultGridColumns)
         {
@@ -82,8 +88,10 @@ namespace Game_Recommendation.Cli.Utils
             }
         }
 
-        // --- Game Display ---
-        
+        #endregion
+
+        #region Game Display
+
         public static string BuildGameCard(Game game, int numberWidth)
         {
             int inner = AppConfig.GameCardWidth - 1;
@@ -104,87 +112,79 @@ namespace Game_Recommendation.Cli.Utils
         public static void PrintGameGrid(List<Game> games, int page, int totalPages, int columns = AppConfig.DefaultGridColumns)
         {
             int start = page * AppConfig.GamePageSize;
-            List<Game> pageGames = games.Skip(start).Take(AppConfig.GamePageSize).ToList();
+            var pageGames = games.Skip(start).Take(AppConfig.GamePageSize).ToList();
             int numberWidth = (start + pageGames.Count).ToString().Length;
             int cardTotalWidth = AppConfig.GameCardWidth + numberWidth + 6;
 
-            List<List<Game>> rows = pageGames
+            var rows = pageGames
                 .Select((game, i) => new { game, i })
                 .GroupBy(x => x.i / columns)
                 .Select(g => g.Select(x => x.game).ToList())
                 .ToList();
 
-            foreach (List<Game> row in rows)
+            int runningCount = 0;
+            foreach (var row in rows)
             {
-                string[][] lines = row
-                    .Select((game, i) => BuildGameCard(game, numberWidth).Split('\n'))
-                    .ToArray();
-
-                int[] numbers = row
-                    .Select((_, i) => start + rows.Take(rows.IndexOf(row)).Sum(r => r.Count) + i + 1)
-                    .ToArray();
-
-                _PrintCardRow(lines, numbers, numberWidth, cardTotalWidth);
-                Console.WriteLine();
+                var lines = row.Select(game => BuildGameCard(game, numberWidth).Split('\n')).ToArray();
+                var numbers = row.Select((_, i) => start + runningCount + i + 1).ToArray();
+                _PrintCardLines(lines, numbers, numberWidth, cardTotalWidth);
+                runningCount += row.Count;
             }
 
-            PrintColored($"Page {page + 1} of {totalPages}\n", AppConfig.Muted);
+            PrintColored($"\nPage {page + 1} of {totalPages}\n", AppConfig.Muted);
             if (page > 0) PrintOptions("A", "Previous Page");
             if (page < totalPages - 1) PrintOptions("D", "Next Page");
             PrintOptions("0", "Back\n");
         }
 
-        private static void _PrintCardRow(string[][] lines, int[] numbers, int numberWidth, int cardTotalWidth)
+        #endregion
+
+        #region Helpers
+
+        // Prints all lines of a card row, with numbered labels on the first line
+        private static void _PrintCardLines(string[][] lines, int[] numbers, int numberWidth, int cardTotalWidth)
         {
             for (int line = 0; line < lines[0].Length; line++)
-                _PrintCardLine(lines, numbers, line, numberWidth, cardTotalWidth);
-        }
-
-        private static void _PrintCardLine(string[][] lines, int[] numbers, int line, int numberWidth, int cardTotalWidth)
-        {
-            for (int col = 0; col < lines.Length; col++)
             {
-                _PrintCardCell(lines[col][line], numbers[col], line, numberWidth, cardTotalWidth);
-                if (col < lines.Length - 1) Console.Write("   ");
+                for (int col = 0; col < lines.Length; col++)
+                {
+                    if (line == 0)
+                    {
+                        string num = $"[{numbers[col]}]".PadRight(numberWidth + 2);
+                        PrintColored(num, AppConfig.Input, newLine: false);
+                        Console.Write((" " + lines[col][line]).PadRight(cardTotalWidth - num.Length));
+                    }
+                    else
+                    {
+                        Console.Write(lines[col][line].PadRight(cardTotalWidth));
+                    }
+                    if (col < lines.Length - 1) Console.Write("   ");
+                }
+                Console.WriteLine();
             }
-            Console.WriteLine();
         }
 
-        private static void _PrintCardCell(string content, int number, int line, int numberWidth, int cardTotalWidth)
-        {
-            if (line != 0)
-            {
-                Console.Write(content.PadRight(cardTotalWidth));
-                return;
-            }
-
-            string num = $"[{number}]".PadRight(numberWidth + 2);
-            PrintColored(num, AppConfig.Input, newLine: false);
-            Console.Write((" " + content).PadRight(cardTotalWidth - num.Length));
-        }
-
-        private static string _Truncate(string text, int maxLength)
-        {
-            return text.Length <= maxLength ? text : text.Substring(0, maxLength - 3) + "...";
-        }
+        private static string _Truncate(string text, int maxLength) =>
+            text.Length <= maxLength ? text : text.Substring(0, maxLength - 3) + "...";
 
         private static string _FormatGenres(List<string> genres, int maxWidth)
         {
             if (genres.Count == 0) return "No genres";
 
-            List<string> shown = new List<string>();
+            var shown = new List<string>();
             foreach (string genre in genres)
             {
                 if (shown.Count >= AppConfig.GameCardGenreLimit) break;
-                int extra = genres.Count - shown.Count - 1;
-                string suffix = extra > 0 ? $" +{extra} more" : "";
-                string candidate = string.Join(", ", shown.Append(genre)) + suffix;
-                if (candidate.Length > maxWidth) break;
                 shown.Add(genre);
+                int remaining = genres.Count - shown.Count;
+                string candidate = string.Join(", ", shown) + (remaining > 0 ? $" +{remaining} more" : "");
+                if (candidate.Length > maxWidth) { shown.RemoveAt(shown.Count - 1); break; }
             }
 
-            int remaining = genres.Count - shown.Count;
-            return string.Join(", ", shown) + (remaining > 0 ? $" +{remaining} more" : "");
+            int left = genres.Count - shown.Count;
+            return string.Join(", ", shown) + (left > 0 ? $" +{left} more" : "");
         }
+
+        #endregion
     }
 }

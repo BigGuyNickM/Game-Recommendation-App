@@ -7,7 +7,6 @@ namespace Game_Recommendation.Database
     public class ConnectionPool
     {
         private static readonly Lazy<ConnectionPool> _instance = new(() => new ConnectionPool());
-
         public static ConnectionPool Instance => _instance.Value;
 
         private readonly string _connectionString;
@@ -24,16 +23,11 @@ namespace Game_Recommendation.Database
         {
             try
             {
-                using (var connection = GetConnection())
-                {
-                    connection.Open();
-                    return true;
-                }
+                using var connection = GetConnection();
+                connection.Open();
+                return true;
             }
-            catch
-            {
-                return false;
-            }
+            catch { return false; }
         }
     }
 }

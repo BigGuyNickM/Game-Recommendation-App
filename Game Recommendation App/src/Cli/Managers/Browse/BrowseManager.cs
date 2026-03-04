@@ -1,17 +1,14 @@
-﻿using Game_Recommendation.Cli.Config;
-using Game_Recommendation.Cli.Utils;
+﻿using Game_Recommendation.Cli.Utils;
 using Game_Recommendation.Models;
 
 namespace Game_Recommendation.Cli.Managers.Browse
 {
     public class BrowseManager : BaseMenu
     {
-        private readonly User _currentUser;
         private readonly SearchManager _searchManager;
 
-        public BrowseManager(User currentUser, SearchManager searchManager)
+        public BrowseManager(SearchManager searchManager)
         {
-            _currentUser = currentUser;
             _searchManager = searchManager;
         }
 

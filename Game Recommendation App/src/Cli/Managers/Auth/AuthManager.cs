@@ -8,12 +8,14 @@ namespace Game_Recommendation.Cli.Managers.Auth
 {
     public class AuthManager
     {
-        private readonly UserRepository userRepo;
+        private readonly UserRepository _userRepo;
 
         public AuthManager(UserRepository userRepo)
         {
-            this.userRepo = userRepo;
+            _userRepo = userRepo;
         }
+
+        #region Public
 
         public User Login()
         {
@@ -22,32 +24,28 @@ namespace Game_Recommendation.Cli.Managers.Auth
                 question: "Please enter your username:",
                 validate: input =>
                 {
-                    if (string.IsNullOrWhiteSpace(input))
-                        return "Username cannot be empty.";
-                    if (!userRepo.UsernameExists(input))
-                        return $"Username '{input}' not found. Please try again.";
+                    if (string.IsNullOrWhiteSpace(input)) return "Username cannot be empty.";
+                    if (!_userRepo.UsernameExists(input)) return $"Username '{input}' not found. Please try again.";
                     return null;
                 }
             );
             if (username == null) return null;
 
-            string storedHash = userRepo.GetPasswordHash(username);
+            string storedHash = _userRepo.GetPasswordHash(username);
             string password = _GetValidatedInput(
                 header: "LOGIN",
                 question: $"Hello, {username}!\n\nPlease enter your password:",
                 validate: input =>
                 {
-                    if (string.IsNullOrWhiteSpace(input))
-                        return "Password cannot be empty.";
-                    if (!BCrypt.Net.BCrypt.Verify(input, storedHash))
-                        return "Incorrect password. Please try again.";
+                    if (string.IsNullOrWhiteSpace(input)) return "Password cannot be empty.";
+                    if (!BCrypt.Net.BCrypt.Verify(input, storedHash)) return "Incorrect password. Please try again.";
                     return null;
                 },
                 masked: true
             );
             if (password == null) return null;
 
-            User user = userRepo.GetUserByUsername(username);
+            var user = _userRepo.GetUserByUsername(username);
             ConsoleHelper.PrintHeader("LOGIN");
             ConsoleHelper.PrintColored($"Welcome back, {user.Username}!", AppConfig.Success);
             return user;
@@ -60,10 +58,8 @@ namespace Game_Recommendation.Cli.Managers.Auth
                 question: "Please choose a username:",
                 validate: input =>
                 {
-                    if (ValidationHelper.ValidateUsername(input) is string err)
-                        return err;
-                    if (userRepo.UsernameExists(input))
-                        return $"Username '{input}' is already taken.";
+                    if (ValidationHelper.ValidateUsername(input) is string err) return err;
+                    if (_userRepo.UsernameExists(input)) return $"Username '{input}' is already taken.";
                     return null;
                 }
             );
@@ -94,7 +90,7 @@ namespace Game_Recommendation.Cli.Managers.Auth
             if (confirm == null) return null;
 
             string passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
-            User newUser = userRepo.CreateUser(username, email, passwordHash);
+            var newUser = _userRepo.CreateUser(username, email, passwordHash);
             newUser.IsNewUser = true;
 
             ConsoleHelper.PrintHeader("SIGN UP");
@@ -104,35 +100,39 @@ namespace Game_Recommendation.Cli.Managers.Auth
             return newUser;
         }
 
+        #endregion
+
+        #region Helpers
+
+        // Loops until input passes validation or user hits 0 to go back
+        // Returns null if user backs out, otherwise returns the valid input
         private string _GetValidatedInput(
             string header,
             string question,
             Func<string, string> validate,
             bool masked = false,
-            bool showStrength = false
-            )
+            bool showStrength = false)
         {
             string error = null;
             while (true)
             {
                 ConsoleHelper.PrintHeader(header);
-
                 ConsoleHelper.PrintOptions("0", "Back");
                 Console.WriteLine(question + "\n");
 
-                if (error != null)
-                    ConsoleHelper.PrintError(error + "\n"); // Prints PREVIOUS error
+                if (error != null) ConsoleHelper.PrintError(error + "\n");
 
                 string input = masked
                     ? InputHelper.GetMaskedInput("", showStrength)
                     : InputHelper.GetInput();
 
-                if (input == "0") return null; // User wants to go back
+                if (input == "0") return null;
 
                 error = validate(input);
-                if (error == null)
-                    return input; // Success if returned, otherwise loop again
+                if (error == null) return input;
             }
         }
+
+        #endregion
     }
 }

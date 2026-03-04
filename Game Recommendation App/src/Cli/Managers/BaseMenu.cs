@@ -1,5 +1,4 @@
-﻿using System;
-using Game_Recommendation.Cli.Utils;
+﻿using Game_Recommendation.Cli.Utils;
 
 namespace Game_Recommendation.Cli.Managers
 {
@@ -13,17 +12,14 @@ namespace Game_Recommendation.Cli.Managers
             while (isRunning)
             {
                 _ShowMenu();
-                string choice = InputHelper.GetInput();
-                _HandleChoice(choice);
+                _HandleChoice(InputHelper.GetInput());
             }
         }
 
         protected abstract void _ShowMenu();
         protected abstract void _HandleChoice(string choice);
 
-        protected void _Exit()
-        {
-            isRunning = false;
-        }
+        // Call this from _HandleChoice to exit the loop
+        protected void _Exit() => isRunning = false;
     }
 }

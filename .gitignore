@@ -10,6 +10,9 @@
 *.userosscache
 *.sln.docstates
 
+# Local config with sensitive credentials (use App.config.example instead)
+App.config
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 

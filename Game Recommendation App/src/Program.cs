@@ -64,7 +64,7 @@ namespace Game_Recommendation
                 AccountManager accountManager = new AccountManager(currentUser, genreManager, genreRepo, userGameRepo);
                 GameDisplayManager gameDisplayManager = new GameDisplayManager(currentUser, userGameRepo);
                 SearchManager searchManager = new SearchManager(gameRepo, genreRepo, gameDisplayManager);
-                BrowseManager browseManager = new BrowseManager(currentUser, searchManager);
+                BrowseManager browseManager = new BrowseManager(searchManager);
                 MenuManager menu = new MenuManager(currentUser, accountManager, browseManager);
                 menu.Run();
                 Console.WriteLine("\nThank you for using the Game Recommendation System!");

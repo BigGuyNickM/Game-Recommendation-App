@@ -23,6 +23,8 @@ namespace Game_Recommendation.Cli.Managers.Account
             _userGameRepo = userGameRepo;
         }
 
+        #region Menu
+
         protected override void _ShowMenu()
         {
             ConsoleHelper.PrintHeader("MANAGE ACCOUNT");
@@ -43,18 +45,20 @@ namespace Game_Recommendation.Cli.Managers.Account
             }
         }
 
-        // --- Private helpers ---
+        #endregion
+
+        #region Profile
 
         private void _ViewProfile()
         {
             while (true)
             {
-                List<UserGame> playedGames = _userGameRepo.GetPlayedGames(_currentUser.Id);
-                List<UserWishlist> wishlistedGames = _userGameRepo.GetWishlistedGames(_currentUser.Id);
-                List<Genre> preferredGenres = _genreRepo.GetUserPreferredGenres(_currentUser.Id);
+                // Refetch each loop so edits (e.g. genre changes) show up immediately
+                var playedGames = _userGameRepo.GetPlayedGames(_currentUser.Id);
+                var wishlistedGames = _userGameRepo.GetWishlistedGames(_currentUser.Id);
+                var preferredGenres = _genreRepo.GetUserPreferredGenres(_currentUser.Id);
 
                 ConsoleHelper.PrintHeader("VIEW PROFILE");
-
                 ConsoleHelper.PrintColored(("Username:  ", AppConfig.Muted), (_currentUser.Username, AppConfig.Highlight));
                 ConsoleHelper.PrintColored(("Email:     ", AppConfig.Muted), (_currentUser.Email, AppConfig.Highlight));
                 ConsoleHelper.PrintColored(("Joined:    ", AppConfig.Muted), (_currentUser.CreatedAt.ToString("MMMM dd, yyyy") + "\n", AppConfig.Highlight));
@@ -76,12 +80,9 @@ namespace Game_Recommendation.Cli.Managers.Account
                 string input = InputHelper.GetInput();
 
                 if (input == "0") return;
-                if (input == "1" && hasMoreGenres)
-                    _ViewAllGames("PREFERRED GENRES", preferredGenres.Select(g => g.GenreName).ToList());
-                if (input == "2" && hasMorePlayed)
-                    _ViewAllGames("PLAYED GAMES", playedGames.Select(g => $"{g.Title} — {g.RatingName ?? "Unrated"} — {g.HoursPlayed}h").ToList());
-                if (input == "3" && hasMoreWishlisted)
-                    _ViewAllGames("WISHLISTED GAMES", wishlistedGames.Select(g => g.Title).ToList());
+                if (input == "1" && hasMoreGenres) _ViewAll("PREFERRED GENRES", preferredGenres.Select(g => g.GenreName).ToList());
+                if (input == "2" && hasMorePlayed) _ViewAll("PLAYED GAMES", playedGames.Select(g => $"{g.Title} — {g.RatingName ?? "Unrated"} — {g.HoursPlayed}h").ToList());
+                if (input == "3" && hasMoreWishlisted) _ViewAll("WISHLISTED GAMES", wishlistedGames.Select(g => g.Title).ToList());
             }
         }
 
@@ -89,11 +90,7 @@ namespace Game_Recommendation.Cli.Managers.Account
         {
             ConsoleHelper.PrintColored($"\n{title}:", AppConfig.Muted);
 
-            if (items.Count == 0)
-            {
-                ConsoleHelper.PrintColored("  None.", AppConfig.Default);
-                return;
-            }
+            if (items.Count == 0) { ConsoleHelper.PrintColored("  None.", AppConfig.Default); return; }
 
             foreach (string item in items.Take(AppConfig.ProfilePreviewCount))
                 ConsoleHelper.PrintColored($"  • {item}", AppConfig.Default);
@@ -102,7 +99,12 @@ namespace Game_Recommendation.Cli.Managers.Account
                 ConsoleHelper.PrintColored($"  ... and {items.Count - AppConfig.ProfilePreviewCount} more", AppConfig.Muted);
         }
 
-        private void _ViewAllGames(string header, List<string> items)
+        #endregion
+
+        #region Helpers
+
+        // Generic paginated list viewer; Used for genres, played games, wishlisted games
+        private void _ViewAll(string header, List<string> items)
         {
             int page = 0;
             int totalPages = (int)Math.Ceiling(items.Count / (double)AppConfig.DefaultPageSize);
@@ -124,9 +126,11 @@ namespace Game_Recommendation.Cli.Managers.Account
                 string input = InputHelper.GetInput();
 
                 if (input == "0") return;
-                if (input.ToUpper() == "D" && page < totalPages - 1) { page++; continue; }
-                if (input.ToUpper() == "A" && page > 0) { page--; continue; }
+                if (input.ToUpper() == "D" && page < totalPages - 1) page++;
+                if (input.ToUpper() == "A" && page > 0) page--;
             }
         }
+
+        #endregion
     }
 }

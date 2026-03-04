@@ -12,9 +12,8 @@ namespace Game_Recommendation.Patterns.Specifications
             _specifications = new List<ISpecification<T>>(specifications);
         }
 
-        public bool IsSatisfiedBy(T item)
-        {
-            return _specifications.All(spec => spec.IsSatisfiedBy(item));
-        }
+        // All specs must pass for the item to match
+        public bool IsSatisfiedBy(T item) =>
+            _specifications.All(spec => spec.IsSatisfiedBy(item));
     }
 }

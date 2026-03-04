@@ -1,4 +1,3 @@
-using System;
 using Game_Recommendation.Cli.Config;
 using Game_Recommendation.Cli.Utils;
 using Game_Recommendation.Cli.Managers.Browse;

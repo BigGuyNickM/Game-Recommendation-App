@@ -7,7 +7,6 @@ using Game_Recommendation.Models;
 using Game_Recommendation.Database.Repositories;
 using Game_Recommendation.Services;
 
-
 namespace Game_Recommendation.Cli.Managers.Browse
 {
     public class SearchManager : BaseMenu
@@ -30,13 +29,13 @@ namespace Game_Recommendation.Cli.Managers.Browse
             _error = null;
         }
 
+        #region Menu
+
         protected override void _ShowMenu()
         {
             ConsoleHelper.PrintHeader("SEARCH GAMES");
-            
             ConsoleHelper.PrintOptions("1", "Filter by Genre");
-            if (_selectedGenreIds.Count > 0)
-                ConsoleHelper.PrintOptions("2", "Clear Filters");
+            if (_selectedGenreIds.Count > 0) ConsoleHelper.PrintOptions("2", "Clear Filters");
             ConsoleHelper.PrintOptions("0", "Back\n");
             _PrintActiveFilters();
             ConsoleHelper.PrintColored("Or type a keyword to search:\n", AppConfig.Muted);
@@ -52,28 +51,24 @@ namespace Game_Recommendation.Cli.Managers.Browse
             {
                 case "0": _Exit(); break;
                 case "1": _FilterByGenre(); break;
-                case "2":
-                    if (_selectedGenreIds.Count > 0)
-                        _selectedGenreIds.Clear();
-                    break;
+                case "2": if (_selectedGenreIds.Count > 0) _selectedGenreIds.Clear(); break;
                 default:
-                    if (string.IsNullOrWhiteSpace(choice))
-                        _error = "Please enter a keyword or select an option.";
-                    else
-                        _RunSearch(choice.ToLower().Trim());
+                    if (string.IsNullOrWhiteSpace(choice)) _error = "Please enter a keyword or select an option.";
+                    else _RunSearch(choice.ToLower().Trim());
                     break;
             }
         }
 
-        // --- Private helpers ---
+        #endregion
+
+        #region Helpers
 
         private void _FilterByGenre()
         {
-            if (_allGenres.Count == 0)
-                _allGenres = _genreRepo.GetAllGenres();
+            // Lazy load genres — only fetch once and reuse
+            if (_allGenres.Count == 0) _allGenres = _genreRepo.GetAllGenres();
 
             string error = null;
-
             while (true)
             {
                 ConsoleHelper.PrintHeader("FILTER BY GENRE");
@@ -82,14 +77,9 @@ namespace Game_Recommendation.Cli.Managers.Browse
                 ConsoleHelper.PrintColored($"\nSelected: {_selectedGenreIds.Count}\n", AppConfig.Default);
                 ConsoleHelper.PrintOptions("0", "Done");
 
-                if (error != null)
-                {
-                    ConsoleHelper.PrintError("\n" + error);
-                    error = null;
-                }
+                if (error != null) { ConsoleHelper.PrintError("\n" + error); error = null; }
 
                 string input = InputHelper.GetInput();
-
                 if (input == "0") return;
                 if (!int.TryParse(input, out int number) || number < 1 || number > _allGenres.Count)
                 {
@@ -97,17 +87,15 @@ namespace Game_Recommendation.Cli.Managers.Browse
                     continue;
                 }
 
-                Genre selected = _allGenres[number - 1];
-                if (_selectedGenreIds.Contains(selected.Id))
-                    _selectedGenreIds.Remove(selected.Id);
-                else
-                    _selectedGenreIds.Add(selected.Id);
+                var selected = _allGenres[number - 1];
+                if (_selectedGenreIds.Contains(selected.Id)) _selectedGenreIds.Remove(selected.Id);
+                else _selectedGenreIds.Add(selected.Id);
             }
         }
 
         private void _RunSearch(string keyword)
         {
-            List<Game> results = _searchService.Search(_selectedGenreIds, new List<string> { keyword });
+            var results = _searchService.Search(_selectedGenreIds, new List<string> { keyword });
             _gameDisplayManager.ShowResults(results);
         }
 
@@ -115,7 +103,7 @@ namespace Game_Recommendation.Cli.Managers.Browse
         {
             if (_selectedGenreIds.Count == 0 || _allGenres.Count == 0) return;
 
-            List<string> selectedNames = _allGenres
+            var selectedNames = _allGenres
                 .Where(g => _selectedGenreIds.Contains(g.Id))
                 .Select(g => g.GenreName)
                 .ToList();
@@ -129,7 +117,7 @@ namespace Game_Recommendation.Cli.Managers.Browse
             int maxNameLength = _allGenres.Max(g => g.GenreName.Length);
             int numberWidth = _allGenres.Count.ToString().Length;
 
-            Action[] items = _allGenres.Select((genre, i) =>
+            var items = _allGenres.Select((genre, i) =>
             {
                 bool isSelected = _selectedGenreIds.Contains(genre.Id);
                 string checkbox = isSelected ? "(X) " : "( ) ";
@@ -138,7 +126,7 @@ namespace Game_Recommendation.Cli.Managers.Browse
 
                 return (Action)(() =>
                 {
-                    ConsoleHelper.PrintColored($"[{i + 1}] ".PadRight(numberWidth + 3), AppConfig.Input, newLine: false);
+                    ConsoleHelper.PrintColored($"[{i + 1}]".PadRight(numberWidth + 3), AppConfig.Input, newLine: false);
                     ConsoleHelper.PrintColored(checkbox, checkColor, newLine: false);
                     ConsoleHelper.PrintColored(genre.GenreName.PadRight(maxNameLength), nameColor, newLine: false);
                 });
@@ -146,5 +134,7 @@ namespace Game_Recommendation.Cli.Managers.Browse
 
             ConsoleHelper.PrintOptions(items, AppConfig.DefaultGridColumns);
         }
+
+        #endregion
     }
 }

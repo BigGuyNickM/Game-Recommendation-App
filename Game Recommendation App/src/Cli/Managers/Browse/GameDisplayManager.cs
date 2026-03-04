@@ -5,7 +5,6 @@ using Game_Recommendation.Cli.Utils;
 using Game_Recommendation.Models;
 using Game_Recommendation.Database.Repositories;
 
-
 namespace Game_Recommendation.Cli.Managers.Browse
 {
     public class GameDisplayManager
@@ -18,6 +17,8 @@ namespace Game_Recommendation.Cli.Managers.Browse
             _currentUser = currentUser;
             _userGameRepo = userGameRepo;
         }
+
+        #region Public
 
         public void ShowResults(List<Game> results)
         {
@@ -34,7 +35,6 @@ namespace Game_Recommendation.Cli.Managers.Browse
             while (true)
             {
                 _ShowResultsPage(results, page, totalPages);
-
                 string input = InputHelper.GetInput();
 
                 int start = page * AppConfig.DefaultPageSize;
@@ -53,28 +53,18 @@ namespace Game_Recommendation.Cli.Managers.Browse
         {
             while (true)
             {
+                // Refetch each loop so toggling played/wishlisted updates the options immediately
                 bool isPlayed = _userGameRepo.IsGamePlayed(_currentUser.Id, game.Id);
                 bool isWishlisted = _userGameRepo.IsGameWishlisted(_currentUser.Id, game.Id);
-
-                ConsoleHelper.PrintHeader(game.Title);
-
-                ConsoleHelper.PrintColored(
-                    ("Publisher:  ", AppConfig.Muted),
-                    (game.Publisher, AppConfig.Highlight)
-                );
-                ConsoleHelper.PrintColored(
-                    ("Genres:     ", AppConfig.Muted),
-                    (string.Join(", ", game.Genres), AppConfig.Highlight)
-                );
 
                 string rating = game.AvgRating.HasValue
                     ? $"★ {game.AvgRating.Value:0.00} ({game.TotalRatings} ratings)"
                     : "N/A";
-                ConsoleHelper.PrintColored(
-                    ("Rating:     ", AppConfig.Muted),
-                    (rating + "\n", AppConfig.Highlight)
-                );
 
+                ConsoleHelper.PrintHeader(game.Title);
+                ConsoleHelper.PrintColored(("Publisher:  ", AppConfig.Muted), (game.Publisher, AppConfig.Highlight));
+                ConsoleHelper.PrintColored(("Genres:     ", AppConfig.Muted), (string.Join(", ", game.Genres), AppConfig.Highlight));
+                ConsoleHelper.PrintColored(("Rating:     ", AppConfig.Muted), (rating + "\n", AppConfig.Highlight));
                 ConsoleHelper.PrintOptions(
                     ("1", isPlayed ? "Remove from Played Games" : "Add to Played Games"),
                     ("2", isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"),
@@ -89,18 +79,14 @@ namespace Game_Recommendation.Cli.Managers.Browse
             }
         }
 
-        // --- Private helpers ---
+        #endregion
+
+        #region Helpers
 
         private void _ShowResultsPage(List<Game> results, int page, int totalPages)
         {
             ConsoleHelper.PrintHeader("SEARCH RESULTS");
-
-            if (results.Count == 0)
-            {
-                ConsoleHelper.PrintColored("No games found matching your search.", AppConfig.Muted);
-                return;
-            }
-
+            if (results.Count == 0) { ConsoleHelper.PrintColored("No games found matching your search.", AppConfig.Muted); return; }
             ConsoleHelper.PrintColored($"{results.Count} game(s) found:\n", AppConfig.Muted);
             ConsoleHelper.PrintGameGrid(results, page, totalPages);
         }
@@ -143,8 +129,7 @@ namespace Game_Recommendation.Cli.Managers.Browse
 
         private int _GetRating()
         {
-            List<int> ratings = _userGameRepo.GetRatings();
-
+            var ratings = _userGameRepo.GetRatings();
             while (true)
             {
                 ConsoleHelper.PrintHeader("RATE GAME");
@@ -154,7 +139,6 @@ namespace Game_Recommendation.Cli.Managers.Browse
                     ("3", "Loved"),
                     ("0", "Back")
                 );
-
                 string input = InputHelper.GetInput();
 
                 if (input == "0") return -1;
@@ -167,30 +151,24 @@ namespace Game_Recommendation.Cli.Managers.Browse
         private int _GetHoursPlayed()
         {
             string error = null;
-
             while (true)
             {
                 ConsoleHelper.PrintHeader("HOURS PLAYED");
                 ConsoleHelper.PrintOptions("0", "Back");
                 ConsoleHelper.PrintColored("How many hours have you played?\n", AppConfig.Default);
-
-                if (error != null)
-                {
-                    ConsoleHelper.PrintError(error + "\n");
-                    error = null;
-                }
+                if (error != null) { ConsoleHelper.PrintError(error + "\n"); error = null; }
 
                 string input = InputHelper.GetInput();
-
                 if (input == "0") return -1;
                 if (!int.TryParse(input, out int hours) || hours < 0)
                 {
                     error = "Please enter a valid number of hours.";
                     continue;
                 }
-
                 return hours;
             }
         }
+
+        #endregion
     }
 }

@@ -14,28 +14,25 @@ namespace Game_Recommendation.Database.Repositories
             _pool = pool;
         }
 
-        // Gets all genres from the database
+        #region Public
+
         public List<Genre> GetAllGenres()
         {
-            List<Genre> genres = new();
+            var genres = new List<Genre>();
             using var connection = _pool.GetConnection();
             connection.Open();
-
             string query = "SELECT id, genre_name FROM genres ORDER BY genre_name";
             using var cmd = new MySqlCommand(query, connection);
             using var reader = cmd.ExecuteReader();
-            while (reader.Read())
-                genres.Add(_MapGenre(reader));
-
+            while (reader.Read()) genres.Add(_MapGenre(reader));
             return genres;
         }
 
-        // Saves the user's preferred genres to the database
+        // ON DUPLICATE KEY skips silently if the genre is already saved
         public void SaveUserPreferences(int userId, List<int> genreIds)
         {
             using var connection = _pool.GetConnection();
             connection.Open();
-
             string query = "INSERT INTO users_preferred_genres (user_id, genre_id) VALUES (@userId, @genreId) " +
                            "ON DUPLICATE KEY UPDATE user_id = user_id";
             foreach (int genreId in genreIds)
@@ -47,45 +44,37 @@ namespace Game_Recommendation.Database.Repositories
             }
         }
 
-        // Checks if the user has any preferred genres saved
         public bool HasPreferences(int userId)
         {
             using var connection = _pool.GetConnection();
             connection.Open();
-
             string query = "SELECT COUNT(*) FROM users_preferred_genres WHERE user_id = @userId";
             using var cmd = new MySqlCommand(query, connection);
             cmd.Parameters.AddWithValue("@userId", userId);
             return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
         }
 
-        // Gets the user's preferred genres from the database
         public List<Genre> GetUserPreferredGenres(int userId)
         {
-            List<Genre> genres = new();
+            var genres = new List<Genre>();
             using var connection = _pool.GetConnection();
             connection.Open();
-
-            string query = @"SELECT g.id, g.genre_name 
-                        FROM genres g
-                        INNER JOIN users_preferred_genres upg ON g.id = upg.genre_id
-                        WHERE upg.user_id = @userId
-                        ORDER BY g.genre_name";
+            string query = @"SELECT g.id, g.genre_name
+                            FROM genres g
+                            INNER JOIN users_preferred_genres upg ON g.id = upg.genre_id
+                            WHERE upg.user_id = @userId
+                            ORDER BY g.genre_name";
             using var cmd = new MySqlCommand(query, connection);
             cmd.Parameters.AddWithValue("@userId", userId);
             using var reader = cmd.ExecuteReader();
-            while (reader.Read())
-                genres.Add(_MapGenre(reader));
-
+            while (reader.Read()) genres.Add(_MapGenre(reader));
             return genres;
         }
 
-        // Removes a specific genre from the user's preferences
         public void RemoveUserPreference(int userId, int genreId)
         {
             using var connection = _pool.GetConnection();
             connection.Open();
-
             string query = "DELETE FROM users_preferred_genres WHERE user_id = @userId AND genre_id = @genreId";
             using var cmd = new MySqlCommand(query, connection);
             cmd.Parameters.AddWithValue("@userId", userId);
@@ -93,12 +82,10 @@ namespace Game_Recommendation.Database.Repositories
             cmd.ExecuteNonQuery();
         }
 
-        // Adds a specific genre to the user's preferences
         public void AddUserPreference(int userId, int genreId)
         {
             using var connection = _pool.GetConnection();
             connection.Open();
-
             string query = "INSERT INTO users_preferred_genres (user_id, genre_id) VALUES (@userId, @genreId)";
             using var cmd = new MySqlCommand(query, connection);
             cmd.Parameters.AddWithValue("@userId", userId);
@@ -106,16 +93,16 @@ namespace Game_Recommendation.Database.Repositories
             cmd.ExecuteNonQuery();
         }
 
-        // --- Private helpers ---
+        #endregion
 
-        // Maps a database reader row to a Genre object
-        private Genre _MapGenre(MySqlDataReader reader)
+        #region Helpers
+
+        private Genre _MapGenre(MySqlDataReader reader) => new Genre
         {
-            return new Genre
-            {
-                Id = reader.GetInt32("id"),
-                GenreName = reader.GetString("genre_name")
-            };
-        }
+            Id = reader.GetInt32("id"),
+            GenreName = reader.GetString("genre_name")
+        };
+
+        #endregion
     }
 }
