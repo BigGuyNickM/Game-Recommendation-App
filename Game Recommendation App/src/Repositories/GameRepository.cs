@@ -5,6 +5,7 @@ using Game_Recommendation.Services;
 using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using static Game_Recommendation.Services.RawgApiService;
 
 namespace Game_Recommendation.Repositories
@@ -12,6 +13,15 @@ namespace Game_Recommendation.Repositories
     public class GameRepository
     {
         private readonly ConnectionPool _pool;
+
+        private const string BaseGameQuery = @"
+            SELECT g.id, g.title, g.publisher, g.game_description, g.avg_rating, g.total_ratings,
+                   GROUP_CONCAT(gr.genre_name ORDER BY gr.genre_name SEPARATOR ', ') AS genres
+            FROM games g
+            LEFT JOIN game_genres gg ON g.id = gg.game_id
+            LEFT JOIN genres gr ON gg.genre_id = gr.id";
+
+        private const string BaseGameQueryGroup = "GROUP BY g.id, g.title, g.publisher, g.game_description, g.avg_rating, g.total_ratings";
 
         public GameRepository(ConnectionPool pool)
         {
@@ -132,6 +142,44 @@ namespace Game_Recommendation.Repositories
             return games;
         }
 
+        public List<Game> GetGamesByGenres(List<int> genreIds)
+        {
+            List<Game> games = new();
+            using var connection = _pool.GetConnection();
+            connection.Open();
+
+            string idParams = string.Join(",", genreIds.Select((_, i) => $"@genreId{i}"));
+            string query = $@"{BaseGameQuery}
+                    WHERE gg.genre_id IN ({idParams})
+                    {BaseGameQueryGroup}";
+
+            using var cmd = new MySqlCommand(query, connection);
+            for (int i = 0; i < genreIds.Count; i++)
+                cmd.Parameters.AddWithValue($"@genreId{i}", genreIds[i]);
+
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+                games.Add(_MapGame(reader));
+
+            return games;
+        }
+
+        // Get all games from the database
+        public List<Game> GetAllGames()
+        {
+            List<Game> games = new();
+            using var connection = _pool.GetConnection();
+            connection.Open();
+
+            string query = $"{BaseGameQuery} {BaseGameQueryGroup}";
+            using var cmd = new MySqlCommand(query, connection);
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+                games.Add(_MapGame(reader));
+
+            return games;
+        }
+
         public int GetTotalGameCount()
         {
             using var connection = _pool.GetConnection();
@@ -168,6 +216,11 @@ namespace Game_Recommendation.Repositories
 
         private Game _MapGame(MySqlDataReader reader)
         {
+            string genreString = reader.IsDBNull(reader.GetOrdinal("genres")) ? "" : reader.GetString("genres");
+            List<string> genres = string.IsNullOrEmpty(genreString)
+                ? new List<string>()
+                : genreString.Split(new string[] { ", " }, StringSplitOptions.RemoveEmptyEntries).ToList();
+
             return new Game
             {
                 Id = reader.GetInt32("id"),
@@ -175,7 +228,8 @@ namespace Game_Recommendation.Repositories
                 Publisher = reader.GetString("publisher"),
                 GameDescription = reader.IsDBNull(reader.GetOrdinal("game_description")) ? "" : reader.GetString("game_description"),
                 AvgRating = reader.IsDBNull(reader.GetOrdinal("avg_rating")) ? null : reader.GetDecimal("avg_rating"),
-                TotalRatings = reader.IsDBNull(reader.GetOrdinal("total_ratings")) ? null : reader.GetInt32("total_ratings")
+                TotalRatings = reader.IsDBNull(reader.GetOrdinal("total_ratings")) ? null : reader.GetInt32("total_ratings"),
+                Genres = genres
             };
         }
     }

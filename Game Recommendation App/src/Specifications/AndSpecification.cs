@@ -1,0 +1,20 @@
+﻿using System.Collections.Generic;
+using System.Linq;
+
+namespace Game_Recommendation.Specifications
+{
+    public class AndSpecification<T> : ISpecification<T>
+    {
+        private readonly List<ISpecification<T>> _specifications;
+
+        public AndSpecification(IEnumerable<ISpecification<T>> specifications)
+        {
+            _specifications = new List<ISpecification<T>>(specifications);
+        }
+
+        public bool IsSatisfiedBy(T item)
+        {
+            return _specifications.All(spec => spec.IsSatisfiedBy(item));
+        }
+    }
+}

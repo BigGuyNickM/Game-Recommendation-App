@@ -1,4 +1,6 @@
-﻿namespace Game_Recommendation.Models
+﻿using System.Collections.Generic;
+
+namespace Game_Recommendation.Models
 {
     public class Game
     {
@@ -8,5 +10,6 @@
         public string GameDescription { get; set; }
         public decimal? AvgRating { get; set; }
         public int? TotalRatings { get; set; }
+        public List<string> Genres { get; set; } = new List<string>();
     }
 }

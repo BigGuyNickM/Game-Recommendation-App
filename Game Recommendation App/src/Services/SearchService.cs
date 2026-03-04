@@ -1,0 +1,35 @@
+﻿using Game_Recommendation.Models;
+using Game_Recommendation.Repositories;
+using Game_Recommendation.Specifications;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace Game_Recommendation.Services
+{
+    public class SearchService
+    {
+        private readonly GameRepository _gameRepo;
+        public SearchService(GameRepository gameRepo)
+        {
+            _gameRepo = gameRepo;
+        }
+        // Search games by keyword in title
+        public List<Game> Search(List<int> genreIds, List<string> keywords)
+        {
+            List<Game> games = genreIds.Count > 0
+                ? _gameRepo.GetGamesByGenres(genreIds)
+                : _gameRepo.GetAllGames();
+
+            if (keywords.Count > 0)
+                return games;
+
+            List<ISpecification<Game>> keywordSpecs = keywords
+                .Select(k => (ISpecification<Game>)new KeywordSpecification(k))
+                .ToList();
+            
+            AndSpecification<Game> filter = new AndSpecification<Game>(keywordSpecs);
+
+            return games.Where(g => filter.IsSatisfiedBy(g)).ToList();
+        }
+    }
+}

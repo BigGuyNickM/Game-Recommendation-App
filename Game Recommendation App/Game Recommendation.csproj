@@ -102,8 +102,11 @@
     <Compile Include="src\Cli\Managers\AccountManager.cs" />
     <Compile Include="src\Cli\Managers\AuthManager.cs" />
     <Compile Include="src\Cli\Managers\BaseMenu.cs" />
+    <Compile Include="src\Cli\Managers\BrowseManager.cs" />
+    <Compile Include="src\Cli\Managers\GameDisplayManager.cs" />
     <Compile Include="src\Cli\Managers\GenreManager.cs" />
     <Compile Include="src\Cli\Managers\MenuManager.cs" />
+    <Compile Include="src\Cli\Managers\SearchManager.cs" />
     <Compile Include="src\Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="src\Cli\Config\AppConfig.cs" />
@@ -118,6 +121,10 @@
     <Compile Include="src\Repositories\GenreRepository.cs" />
     <Compile Include="src\Repositories\UserRepository.cs" />
     <Compile Include="src\Services\RawgApiService.cs" />
+    <Compile Include="src\Services\SearchService.cs" />
+    <Compile Include="src\Specifications\AndSpecification.cs" />
+    <Compile Include="src\Specifications\ISpecification.cs" />
+    <Compile Include="src\Specifications\KeywordSpecification.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

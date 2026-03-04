@@ -74,6 +74,4 @@ CREATE TABLE users_wishlist (
 
 CREATE INDEX idx_users_games_rating ON users_games(rating_id);
 
-SELECT * FROM games;
-
-SELECT COUNT(*) FROM games WHERE total_ratings > 0 AND avg_rating > 0;
+select * from users_preferred_genres;

@@ -39,7 +39,7 @@ namespace Game_Recommendation.Cli.Utils
         public static (string label, int score) GetPasswordStrength(string password)
         {
             int score = 0;
-            if (password.Length >= 6) score++;
+            if (password.Length >= AppConfig.PasswordMinLength) score++;
             if (password.Length >= 10) score++;
             if (Regex.IsMatch(password, @"[A-Z]") && Regex.IsMatch(password, @"[a-z]")) score++;
             if (Regex.IsMatch(password, @"[0-9]")) score++;

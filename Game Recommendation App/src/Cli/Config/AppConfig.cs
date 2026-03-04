@@ -35,8 +35,14 @@ namespace Game_Recommendation.Cli.Config
         public const int PasswordStrengthWeak = 1;
         public const int PasswordStrengthMedium = 3;
 
-
         // Timing
         public const int TransitionDelay = 500;
+
+        // Search
+        public const int FuzzyMatchTolerance = 2;
+
+        // Game cards
+        public const int GameCardWidth = 25;
+        public const int GameCardGenreLimit = 2;
     }
 }
