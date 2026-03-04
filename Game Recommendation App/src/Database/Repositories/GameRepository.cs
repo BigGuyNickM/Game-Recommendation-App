@@ -1,14 +1,12 @@
 using Game_Recommendation.Cli.Config;
-using Game_Recommendation.Data;
 using Game_Recommendation.Models;
-using Game_Recommendation.Services;
 using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using static Game_Recommendation.Services.RawgApiService;
+using static Game_Recommendation.Database.Services.RawgApiService;
 
-namespace Game_Recommendation.Repositories
+namespace Game_Recommendation.Database.Repositories
 {
     public class GameRepository
     {
@@ -22,6 +20,10 @@ namespace Game_Recommendation.Repositories
             LEFT JOIN genres gr ON gg.genre_id = gr.id";
 
         private const string BaseGameQueryGroup = "GROUP BY g.id, g.title, g.publisher, g.game_description, g.avg_rating, g.total_ratings";
+
+        private List<Game> _cachedGames;
+        private DateTime _cacheExpiry;
+
 
         public GameRepository(ConnectionPool pool)
         {
@@ -167,6 +169,9 @@ namespace Game_Recommendation.Repositories
         // Get all games from the database
         public List<Game> GetAllGames()
         {
+            if (_cachedGames != null && DateTime.Now < _cacheExpiry)
+                return _cachedGames;
+
             List<Game> games = new();
             using var connection = _pool.GetConnection();
             connection.Open();
@@ -177,7 +182,9 @@ namespace Game_Recommendation.Repositories
             while (reader.Read())
                 games.Add(_MapGame(reader));
 
-            return games;
+            _cachedGames = games;
+            _cacheExpiry = DateTime.Now.AddMinutes(AppConfig.GameCacheMinutes);
+            return _cachedGames;
         }
 
         public int GetTotalGameCount()

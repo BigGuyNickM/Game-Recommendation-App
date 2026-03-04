@@ -25,6 +25,7 @@ namespace Game_Recommendation.Cli.Config
 
         // Pagination
         public const int DefaultPageSize = 10;
+        public const int GamePageSize = 9;
 
         // Username validation
         public const int UsernameMinLength = 3;
@@ -40,9 +41,15 @@ namespace Game_Recommendation.Cli.Config
 
         // Search
         public const int FuzzyMatchTolerance = 2;
+        public const int FuzzyMatchMinLength = 4;
 
         // Game cards
         public const int GameCardWidth = 25;
         public const int GameCardGenreLimit = 2;
+
+        // Caching
+        public const int GameCacheMinutes = 30;
+
+        public const int ProfilePreviewCount = 3;
     }
 }

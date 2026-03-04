@@ -2,7 +2,7 @@ using System;
 using Game_Recommendation.Cli.Config;
 using Game_Recommendation.Cli.Utils;
 using Game_Recommendation.Models;
-using Game_Recommendation.Repositories;
+using Game_Recommendation.Database.Repositories;
 
 namespace Game_Recommendation.Cli.Managers
 {

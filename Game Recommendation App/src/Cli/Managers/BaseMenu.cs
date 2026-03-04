@@ -9,6 +9,7 @@ namespace Game_Recommendation.Cli.Managers
 
         public void Run()
         {
+            isRunning = true;
             while (isRunning)
             {
                 _ShowMenu();

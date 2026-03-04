@@ -11,7 +11,8 @@ namespace Game_Recommendation.Cli.Utils
         public static void PrintHeader(string title)
         {
             Console.Clear();
-            int width = Math.Max(AppConfig.HeaderMinWidth, title.Length + (AppConfig.HeaderPadding+2));
+            Console.WriteLine("\x1b[3J");
+            int width = Math.Max(AppConfig.HeaderMinWidth, title.Length + (AppConfig.HeaderPadding + 2));
             int innerWidth = width - 2;
             string centeredTitle = title.PadLeft((innerWidth + title.Length) / 2).PadRight(innerWidth);
             string top = $"╔{new string('═', innerWidth)}╗";
@@ -82,7 +83,7 @@ namespace Game_Recommendation.Cli.Utils
         }
 
         // --- Game Display ---
-
+        
         public static string BuildGameCard(Game game, int numberWidth)
         {
             int inner = AppConfig.GameCardWidth - 1;
@@ -102,8 +103,8 @@ namespace Game_Recommendation.Cli.Utils
 
         public static void PrintGameGrid(List<Game> games, int page, int totalPages, int columns = AppConfig.DefaultGridColumns)
         {
-            int start = page * AppConfig.DefaultPageSize;
-            List<Game> pageGames = games.Skip(start).Take(AppConfig.DefaultPageSize).ToList();
+            int start = page * AppConfig.GamePageSize;
+            List<Game> pageGames = games.Skip(start).Take(AppConfig.GamePageSize).ToList();
             int numberWidth = (start + pageGames.Count).ToString().Length;
             int cardTotalWidth = AppConfig.GameCardWidth + numberWidth + 6;
 
@@ -120,7 +121,7 @@ namespace Game_Recommendation.Cli.Utils
                     .ToArray();
 
                 int[] numbers = row
-                    .Select((_, i) => start + row.IndexOf(row[i]) + 1)
+                    .Select((_, i) => start + rows.Take(rows.IndexOf(row)).Sum(r => r.Count) + i + 1)
                     .ToArray();
 
                 _PrintCardRow(lines, numbers, numberWidth, cardTotalWidth);
@@ -159,7 +160,7 @@ namespace Game_Recommendation.Cli.Utils
 
             string num = $"[{number}]".PadRight(numberWidth + 2);
             PrintColored(num, AppConfig.Input, newLine: false);
-            Console.Write(content.PadRight(cardTotalWidth - num.Length));
+            Console.Write((" " + content).PadRight(cardTotalWidth - num.Length));
         }
 
         private static string _Truncate(string text, int maxLength)
@@ -174,6 +175,7 @@ namespace Game_Recommendation.Cli.Utils
             List<string> shown = new List<string>();
             foreach (string genre in genres)
             {
+                if (shown.Count >= AppConfig.GameCardGenreLimit) break;
                 int extra = genres.Count - shown.Count - 1;
                 string suffix = extra > 0 ? $" +{extra} more" : "";
                 string candidate = string.Join(", ", shown.Append(genre)) + suffix;

@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
 using MySql.Data.MySqlClient;
-using Game_Recommendation.Data;
 using Game_Recommendation.Models;
 
-namespace Game_Recommendation.Repositories
+namespace Game_Recommendation.Database.Repositories
 {
     public class GenreRepository
     {

@@ -1,4 +1,4 @@
-﻿namespace Game_Recommendation.Specifications
+﻿namespace Game_Recommendation.Patterns.Specifications
 {
     public interface ISpecification<T>
     {

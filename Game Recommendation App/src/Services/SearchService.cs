@@ -1,6 +1,6 @@
 ﻿using Game_Recommendation.Models;
-using Game_Recommendation.Repositories;
-using Game_Recommendation.Specifications;
+using Game_Recommendation.Database.Repositories;
+using Game_Recommendation.Patterns.Specifications;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -20,13 +20,13 @@ namespace Game_Recommendation.Services
                 ? _gameRepo.GetGamesByGenres(genreIds)
                 : _gameRepo.GetAllGames();
 
-            if (keywords.Count > 0)
+            if (keywords.Count == 0)
                 return games;
 
             List<ISpecification<Game>> keywordSpecs = keywords
                 .Select(k => (ISpecification<Game>)new KeywordSpecification(k))
                 .ToList();
-            
+
             AndSpecification<Game> filter = new AndSpecification<Game>(keywordSpecs);
 
             return games.Where(g => filter.IsSatisfiedBy(g)).ToList();

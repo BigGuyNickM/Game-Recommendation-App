@@ -1,7 +1,7 @@
 ﻿using Game_Recommendation.Cli.Config;
 using Game_Recommendation.Cli.Utils;
 using Game_Recommendation.Models;
-using Game_Recommendation.Repositories;
+using Game_Recommendation.Database.Repositories;
 using Game_Recommendation.Services;
 using System;
 using System.Collections.Generic;
@@ -32,20 +32,17 @@ namespace Game_Recommendation.Cli.Managers
         protected override void _ShowMenu()
         {
             ConsoleHelper.PrintHeader("SEARCH GAMES");
-
+            
             ConsoleHelper.PrintOptions("1", "Filter by Genre");
             if (_selectedGenreIds.Count > 0)
                 ConsoleHelper.PrintOptions("2", "Clear Filters");
             ConsoleHelper.PrintOptions("0", "Back\n");
-
             _PrintActiveFilters();
             ConsoleHelper.PrintColored("Or type a keyword to search:\n", AppConfig.Muted);
 
-            if (_error != null)
-            {
-                ConsoleHelper.PrintError(_error + "\n");
-                _error = null;
-            }
+            if (_error == null) return;
+            ConsoleHelper.PrintError(_error + "\n");
+            _error = null;
         }
 
         protected override void _HandleChoice(string choice)
@@ -79,9 +76,9 @@ namespace Game_Recommendation.Cli.Managers
             while (true)
             {
                 ConsoleHelper.PrintHeader("FILTER BY GENRE");
-                Console.WriteLine("Toggle genres to filter by:\n");
+                ConsoleHelper.PrintColored("Toggle genres to filter by:\n", AppConfig.Default);
                 _PrintGenreGrid();
-                Console.WriteLine($"\nSelected: {_selectedGenreIds.Count}\n");
+                ConsoleHelper.PrintColored($"\nSelected: {_selectedGenreIds.Count}\n", AppConfig.Default);
                 ConsoleHelper.PrintOptions("0", "Done");
 
                 if (error != null)
@@ -90,10 +87,9 @@ namespace Game_Recommendation.Cli.Managers
                     error = null;
                 }
 
-                Console.WriteLine();
                 string input = InputHelper.GetInput();
-                if (input == "0") return;
 
+                if (input == "0") return;
                 if (!int.TryParse(input, out int number) || number < 1 || number > _allGenres.Count)
                 {
                     error = $"Invalid input. Enter a number between 1 and {_allGenres.Count}.";
@@ -110,8 +106,7 @@ namespace Game_Recommendation.Cli.Managers
 
         private void _RunSearch(string keyword)
         {
-            List<string> keywords = new List<string> { keyword };
-            List<Game> results = _searchService.Search(_selectedGenreIds, keywords);
+            List<Game> results = _searchService.Search(_selectedGenreIds, new List<string> { keyword });
             _gameDisplayManager.ShowResults(results);
         }
 

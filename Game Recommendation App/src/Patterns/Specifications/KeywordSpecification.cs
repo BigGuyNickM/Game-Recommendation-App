@@ -1,22 +1,27 @@
 ﻿using Game_Recommendation.Cli.Config;
 using Game_Recommendation.Models;
-using Game_Recommendation.Specifications;
+using System;
 
-namespace Game_Recommendation.Specifications
+namespace Game_Recommendation.Patterns.Specifications
 {
     public class KeywordSpecification : ISpecification<Game>
     {
         private readonly string _keyword;
+
         public KeywordSpecification(string keyword)
         {
             _keyword = keyword.ToLower().Trim();
         }
+
         public bool IsSatisfiedBy(Game game)
         {
             string title = game.Title.ToLower();
 
             if (title.Contains(_keyword))
                 return true;
+
+            if (_keyword.Length < AppConfig.FuzzyMatchMinLength)
+                return false;
 
             return _FuzzyMatch(title, _keyword);
         }
@@ -25,9 +30,9 @@ namespace Game_Recommendation.Specifications
 
         private static bool _FuzzyMatch(string title, string keyword)
         {
-            string[] words = title.Split(' ');
-            foreach (string word in words)
+            foreach (string word in title.Split(' '))
             {
+                if (word.Length < keyword.Length / 2) continue;
                 if (_LevenshteinDistance(word, keyword) <= AppConfig.FuzzyMatchTolerance)
                     return true;
             }
@@ -45,16 +50,14 @@ namespace Game_Recommendation.Specifications
             for (int j = 0; j <= b.Length; j++) matrix[0, j] = j;
 
             for (int i = 1; i <= a.Length; i++)
-            {
                 for (int j = 1; j <= b.Length; j++)
                 {
                     int cost = a[i - 1] == b[j - 1] ? 0 : 1;
-                    matrix[i, j] = System.Math.Min(
-                        System.Math.Min(matrix[i - 1, j] + 1, matrix[i, j - 1] + 1),
+                    matrix[i, j] = Math.Min(
+                        Math.Min(matrix[i - 1, j] + 1, matrix[i, j - 1] + 1),
                         matrix[i - 1, j - 1] + cost
                     );
                 }
-            }
 
             return matrix[a.Length, b.Length];
         }

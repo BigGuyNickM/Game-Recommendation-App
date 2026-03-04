@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace Game_Recommendation.Specifications
+namespace Game_Recommendation.Patterns.Specifications
 {
     public class AndSpecification<T> : ISpecification<T>
     {

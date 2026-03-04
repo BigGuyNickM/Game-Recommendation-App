@@ -7,7 +7,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace Game_Recommendation.Services
+namespace Game_Recommendation.Database.Services
 {
     public class RawgApiService
     {

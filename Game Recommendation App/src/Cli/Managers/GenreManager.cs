@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Game_Recommendation.Cli.Utils;
 using Game_Recommendation.Cli.Config;
-using Game_Recommendation.Repositories;
+using Game_Recommendation.Database.Repositories;
 using Game_Recommendation.Models;
 
 namespace Game_Recommendation.Cli.Managers

@@ -2,7 +2,7 @@
 using System.Configuration;
 using MySql.Data.MySqlClient;
 
-namespace Game_Recommendation.Data
+namespace Game_Recommendation.Database
 {
     public class ConnectionPool
     {

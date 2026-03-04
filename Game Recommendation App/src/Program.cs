@@ -1,9 +1,9 @@
 using Game_Recommendation.Cli;
 using Game_Recommendation.Cli.Managers;
 using Game_Recommendation.Cli.Utils;
-using Game_Recommendation.Data;
+using Game_Recommendation.Database;
 using Game_Recommendation.Models;
-using Game_Recommendation.Repositories;
+using Game_Recommendation.Database.Repositories;
 using System;
 
 namespace Game_Recommendation
@@ -18,13 +18,15 @@ namespace Game_Recommendation
             UserRepository userRepo = new UserRepository(pool);
             GenreRepository genreRepo = new GenreRepository(pool);
             GameRepository gameRepo = new GameRepository(pool);
+            UserGameRepository userGameRepo = new UserGameRepository(pool);
+            userGameRepo.SeedRatings();
             GenreManager genreManager = new GenreManager(genreRepo);
             AuthManager authManager = new AuthManager(userRepo);
 
-            _RunApp(authManager, genreManager, genreRepo, gameRepo);
+            _RunApp(authManager, genreManager, genreRepo, gameRepo, userGameRepo);
         }
 
-        private static void _RunApp(AuthManager authManager, GenreManager genreManager, GenreRepository genreRepo, GameRepository gameRepo)
+        private static void _RunApp(AuthManager authManager, GenreManager genreManager, GenreRepository genreRepo, GameRepository gameRepo, UserGameRepository userGameRepo)
         {
             while (true)
             {
@@ -57,8 +59,8 @@ namespace Game_Recommendation
                 else
                     InputHelper.WaitForKey("\nPress any key to continue to main menu...");
 
-                AccountManager accountManager = new AccountManager(currentUser, genreManager, genreRepo);
-                GameDisplayManager gameDisplayManager = new GameDisplayManager(gameRepo);
+                AccountManager accountManager = new AccountManager(currentUser, genreManager, genreRepo, userGameRepo);
+                GameDisplayManager gameDisplayManager = new GameDisplayManager(currentUser, userGameRepo);
                 SearchManager searchManager = new SearchManager(gameRepo, genreRepo, gameDisplayManager);
                 BrowseManager browseManager = new BrowseManager(currentUser, searchManager);
                 MenuManager menu = new MenuManager(currentUser, accountManager, browseManager);
