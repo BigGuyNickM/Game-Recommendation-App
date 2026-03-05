@@ -1,4 +1,5 @@
-﻿namespace Game_Recommendation.Models
+﻿
+namespace Game_Recommendation.Models
 {
     public class UserGame
     {

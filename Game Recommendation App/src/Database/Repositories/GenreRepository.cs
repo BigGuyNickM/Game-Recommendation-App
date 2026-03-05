@@ -28,7 +28,7 @@ namespace Game_Recommendation.Database.Repositories
             return genres;
         }
 
-        // ON DUPLICATE KEY skips silently if the genre is already saved
+        // Skips silently if the genre is already saved
         public void SaveUserPreferences(int userId, List<int> genreIds)
         {
             using var connection = _pool.GetConnection();

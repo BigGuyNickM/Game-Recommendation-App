@@ -49,7 +49,7 @@ namespace Game_Recommendation.Database.Repositories
             return Convert.ToInt32(cmd.ExecuteScalar());
         }
 
-        // Resolves each genre name to an id, creating it if it doesn't exist yet
+        // Puts each genre name as an id, creating it if it doesn't exist yet
         public void SaveGameGenres(int gameId, List<string> genres)
         {
             using var connection = _pool.GetConnection();

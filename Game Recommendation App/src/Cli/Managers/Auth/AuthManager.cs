@@ -15,6 +15,9 @@ namespace Game_Recommendation.Cli.Managers.Auth
             _userRepo = userRepo;
         }
 
+        // NOTE:
+        // We used Bcrypt for password hashing/encryption to keep things simple and secure
+
         #region Public
 
         public User Login()

@@ -60,11 +60,15 @@ namespace Game_Recommendation.Cli.Managers.Browse
                 string rating = game.AvgRating.HasValue
                     ? $"★ {game.AvgRating.Value:0.00} ({game.TotalRatings} ratings)"
                     : "N/A";
+                string description = game.GameDescription.IsWhiteSpace()
+                    ? "No description available." 
+                    : game.GameDescription;
 
                 ConsoleHelper.PrintHeader(game.Title);
-                ConsoleHelper.PrintColored(("Publisher:  ", AppConfig.Muted), (game.Publisher, AppConfig.Highlight));
-                ConsoleHelper.PrintColored(("Genres:     ", AppConfig.Muted), (string.Join(", ", game.Genres), AppConfig.Highlight));
-                ConsoleHelper.PrintColored(("Rating:     ", AppConfig.Muted), (rating + "\n", AppConfig.Highlight));
+                ConsoleHelper.PrintColored(("Publisher:     ", AppConfig.Muted), (game.Publisher, AppConfig.Highlight));
+                ConsoleHelper.PrintColored(("Genres:        ", AppConfig.Muted), (string.Join(", ", game.Genres), AppConfig.Highlight));
+                ConsoleHelper.PrintColored(("Rating:        ", AppConfig.Muted), (rating, AppConfig.Highlight));
+                ConsoleHelper.PrintColored(("Description:   ", AppConfig.Muted), (description + "\n", AppConfig.Highlight));
                 ConsoleHelper.PrintOptions(
                     ("1", isPlayed ? "Remove from Played Games" : "Add to Played Games"),
                     ("2", isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"),
@@ -83,6 +87,7 @@ namespace Game_Recommendation.Cli.Managers.Browse
 
         #region Helpers
 
+        // Displays the search results page with pagination. Shows a message if no results are found.
         private void _ShowResultsPage(List<Game> results, int page, int totalPages)
         {
             ConsoleHelper.PrintHeader("SEARCH RESULTS");
@@ -91,6 +96,7 @@ namespace Game_Recommendation.Cli.Managers.Browse
             ConsoleHelper.PrintGameGrid(results, page, totalPages);
         }
 
+        // Adds or removes the game from the user's wishlist
         private void _HandleWishlistToggle(Game game, bool isWishlisted)
         {
             if (isWishlisted)
@@ -106,6 +112,7 @@ namespace Game_Recommendation.Cli.Managers.Browse
             InputHelper.WaitForKey();
         }
 
+        // Adds or removes the game from the user's played games, and then prompts for rating/hours when adding
         private void _HandlePlayedToggle(Game game, bool isPlayed)
         {
             if (isPlayed)

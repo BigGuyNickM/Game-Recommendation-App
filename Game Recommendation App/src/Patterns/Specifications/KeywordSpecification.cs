@@ -1,6 +1,7 @@
 ﻿using Game_Recommendation.Cli.Config;
 using Game_Recommendation.Models;
 using System;
+
 namespace Game_Recommendation.Patterns.Specifications
 {
     public class KeywordSpecification : ISpecification<Game>
@@ -19,7 +20,8 @@ namespace Game_Recommendation.Patterns.Specifications
                 return false;
             return _FuzzyMatch(title, _keyword);
         }
-        // --- Private helpers ---
+
+        #region Helpers
         private static bool _FuzzyMatch(string title, string keyword)
         {
             foreach (string word in title.Split(' '))
@@ -48,5 +50,6 @@ namespace Game_Recommendation.Patterns.Specifications
                 }
             return matrix[a.Length, b.Length];
         }
+        #endregion
     }
 }

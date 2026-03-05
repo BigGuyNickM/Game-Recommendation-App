@@ -75,7 +75,7 @@ namespace Game_Recommendation.Cli.Utils
             ConsoleHelper.PrintColored("> ", AppConfig.Input, newLine: false);
         }
 
-        // Saves cursor position, rewrites the strength line, then jumps back
+        // Rewrites the strength display line with the current password strength, then restores cursor position (so user can keep typing uninterrupted)
         private static void UpdateStrengthDisplay(string input, int strengthRow)
         {
             var (label, score) = ValidationHelper.GetPasswordStrength(input);

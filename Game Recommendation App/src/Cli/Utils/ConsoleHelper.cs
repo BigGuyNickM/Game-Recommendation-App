@@ -9,7 +9,7 @@ namespace Game_Recommendation.Cli.Utils
     internal static class ConsoleHelper
     {
         #region Output
-
+        // Prints text in a specified color, with an optional newline (default true).
         public static void PrintColored(string text, ConsoleColor color, bool newLine = true)
         {
             Console.ForegroundColor = color;
@@ -35,7 +35,7 @@ namespace Game_Recommendation.Cli.Utils
         public static void PrintHeader(string title)
         {
             Console.Clear();
-            Console.WriteLine("\x1b[3J"); // clear scrollback buffer
+            Console.WriteLine("\x1b[3J"); // clear scrollback buffer (for screens larger than the window height)
             int width = Math.Max(AppConfig.HeaderMinWidth, title.Length + AppConfig.HeaderPadding + 2);
             int innerWidth = width - 2;
             string centeredTitle = title.PadLeft((innerWidth + title.Length) / 2).PadRight(innerWidth);
@@ -92,6 +92,7 @@ namespace Game_Recommendation.Cli.Utils
 
         #region Game Display
 
+        // Builds the text based card for a game, automatically aligned & predetermined width.
         public static string BuildGameCard(Game game, int numberWidth)
         {
             int inner = AppConfig.GameCardWidth - 1;
@@ -109,6 +110,7 @@ namespace Game_Recommendation.Cli.Utils
                 $"{pad}└{border}┘";
         }
 
+        // Displays a paginated grid of game cards, with numbered options for each game and page navigation.
         public static void PrintGameGrid(List<Game> games, int page, int totalPages, int columns = AppConfig.DefaultGridColumns)
         {
             int start = page * AppConfig.GamePageSize;

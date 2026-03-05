@@ -65,7 +65,7 @@ namespace Game_Recommendation.Cli.Managers.Browse
 
         private void _FilterByGenre()
         {
-            // Lazy load genres — only fetch once and reuse
+            // Lazy load the genres; Only fetch once and reuse them
             if (_allGenres.Count == 0) _allGenres = _genreRepo.GetAllGenres();
 
             string error = null;
@@ -99,6 +99,7 @@ namespace Game_Recommendation.Cli.Managers.Browse
             _gameDisplayManager.ShowResults(results);
         }
 
+        // Print the selected genres as active filters, e.g. "Genres: Action, RPG"
         private void _PrintActiveFilters()
         {
             if (_selectedGenreIds.Count == 0 || _allGenres.Count == 0) return;
@@ -112,6 +113,7 @@ namespace Game_Recommendation.Cli.Managers.Browse
             ConsoleHelper.PrintColored(string.Join(", ", selectedNames) + "\n", AppConfig.Highlight);
         }
 
+        // Display genres in a grid with checkboxes, e.g. "[1] (X) Action" (could possibly be refactored to a reusable component since used in multiple places)
         private void _PrintGenreGrid()
         {
             int maxNameLength = _allGenres.Max(g => g.GenreName.Length);
