@@ -30,15 +30,15 @@ namespace Game_Recommendation.Cli.Managers.Browse
             }
 
             int page = 0;
-            int totalPages = (int)Math.Ceiling(results.Count / (double)AppConfig.DefaultPageSize);
+            int totalPages = (int)Math.Ceiling(results.Count / (double)AppConfig.GamePageSize);
 
             while (true)
             {
                 _ShowResultsPage(results, page, totalPages);
                 string input = InputHelper.GetInput();
 
-                int start = page * AppConfig.DefaultPageSize;
-                int end = Math.Min(start + AppConfig.DefaultPageSize, results.Count);
+                int start = page * AppConfig.GamePageSize;
+                int end = Math.Min(start + AppConfig.GamePageSize, results.Count);
 
                 if (input == "0") return;
                 if (input.ToUpper() == "D" && page < totalPages - 1) { page++; continue; }
